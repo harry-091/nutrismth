@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>NutriQuest System Guide</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 24mm 18mm 20mm 18mm;
+      }
+
+      :root {
+        --ink: #22252b;
+        --muted: #5d6674;
+        --accent: #c94f6d;
+        --accent-soft: #f9e6eb;
+        --line: #d7dde7;
+        --panel: #f8fafc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        line-height: 1.55;
+        font-size: 11.5pt;
+      }
+
+      h1, h2, h3 {
+        line-height: 1.2;
+        margin: 0 0 10px;
+      }
+
+      h1 {
+        font-size: 28pt;
+      }
+
+      h2 {
+        font-size: 18pt;
+        margin-top: 28px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid var(--line);
+      }
+
+      h3 {
+        font-size: 13.5pt;
+        margin-top: 18px;
+      }
+
+      p {
+        margin: 0 0 12px;
+      }
+
+      ul, ol {
+        margin: 0 0 12px 20px;
+      }
+
+      li {
+        margin-bottom: 6px;
+      }
+
+      code {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 0.95em;
+        background: #f2f5f8;
+        padding: 1px 4px;
+        border-radius: 4px;
+      }
+
+      pre {
+        margin: 10px 0 14px;
+        padding: 12px 14px;
+        background: #10151c;
+        color: #eef2f7;
+        border-radius: 10px;
+        overflow: hidden;
+        white-space: pre-wrap;
+        font-size: 10pt;
+      }
+
+      .cover {
+        padding: 6px 0 24px;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 10pt;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .lead {
+        font-size: 13pt;
+        color: var(--muted);
+        max-width: 90%;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 16px 0 10px;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 12px;
+        background: var(--panel);
+      }
+
+      .card strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .note {
+        border-left: 4px solid var(--accent);
+        background: var(--accent-soft);
+        padding: 12px 14px;
+        border-radius: 0 10px 10px 0;
+        margin: 14px 0;
+      }
+
+      .small {
+        color: var(--muted);
+        font-size: 10.5pt;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0;
+        font-size: 10.5pt;
+      }
+
+      th, td {
+        border: 1px solid var(--line);
+        padding: 8px 10px;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef2f7;
+        text-align: left;
+      }
+
+      .page-break {
+        page-break-before: always;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="cover">
+      <div class="eyebrow">System Guide</div>
+      <h1>NutriQuest: Complete Technical Explanation</h1>
+      <p class="lead">
+        This document explains what the current project does, how the code is structured,
+        how the recommendation logic works, how the plate planner works, and how to turn
+        the current rule-based engine into a real machine learning system.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <strong>Frontend</strong>
+          React + Vite single-page app with page-like hash navigation, quiz, survey, plate planner, and results views.
+        </div>
+        <div class="card">
+          <strong>Backend</strong>
+          FastAPI service with validated request schemas, rule-based recommendations, and a plate optimization endpoint.
+        </div>
+        <div class="card">
+          <strong>Current Intelligence Layer</strong>
+          Deterministic logic in Python. It behaves like a simple expert system, not a trained ML model yet.
+        </div>
+        <div class="card">
+          <strong>Future Direction</strong>
+          Train an ML model on survey, meal, and outcome data, then serve predictions through the same API contract.
+        </div>
+      </div>
+    </section>
+
+    <h2>1. What This Project Does</h2>
+    <p>
+      NutriQuest is a nutrition-focused web app. A user can move through different views:
+      home, quiz, research, survey, plate planner, and results. The app collects user
+      information such as age group, hydration behavior, meal habits, snack habits, sugary
+      drink frequency, activity level, body weight, and plate selections. It then returns
+      recommendations.
+    </p>
+    <p>
+      There are two kinds of recommendation flows in the current system:
+    </p>
+    <ol>
+      <li>The survey flow, which produces hydration, plate, swap, and nutrient guidance.</li>
+      <li>The plate planner flow, which lets the user design a meal and receive a corrected version.</li>
+    </ol>
+    <div class="note">
+      Important: the current project uses a rule-based decision engine. It is structured so
+      that a future ML model can replace or augment the rules, but no trained model is being
+      loaded or inferred yet.
+    </div>
+
+    <h2>2. High-Level Architecture</h2>
+    <h3>Frontend flow</h3>
+    <p>The frontend lives in <code>frontend/src</code>. The entrypoint is <code>App.jsx</code>.</p>
+    <ul>
+      <li><code>App.jsx</code> stores the active page, survey state, quiz state, recommendation data, and plate planner data.</li>
+      <li><code>lib/api.js</code> sends JSON requests to the backend.</li>
+      <li>Each page is implemented as a React section component.</li>
+      <li>Page navigation is handled using the URL hash such as <code>#home</code>, <code>#survey</code>, and <code>#plate</code>.</li>
+    </ul>
+
+    <h3>Backend flow</h3>
+    <p>The backend lives in <code>backend/app</code>.</p>
+    <ul>
+      <li><code>main.py</code> defines the FastAPI app and routes.</li>
+      <li><code>models.py</code> defines request and response schemas with Pydantic.</li>
+      <li><code>content.py</code> stores static research content.</li>
+      <li><code>services/recommendations.py</code> contains the scoring, recommendation, and plate optimization logic.</li>
+    </ul>
+
+    <h3>Current request/response sequence</h3>
+    <pre>
+Frontend form or planner
+  -> sends JSON to FastAPI
+  -> FastAPI validates data with Pydantic
+  -> recommendation service processes input
+  -> backend returns structured JSON
+  -> React renders cards, summaries, risks, swaps, or optimized plate items
+    </pre>
+
+    <h2>3. Current API Endpoints</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Endpoint</th>
+          <th>Purpose</th>
+          <th>Input</th>
+          <th>Output</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET /health</code></td>
+          <td>Basic health check</td>
+          <td>None</td>
+          <td><code>{"status":"ok"}</code></td>
+        </tr>
+        <tr>
+          <td><code>GET /content/sections</code></td>
+          <td>Loads research page content</td>
+          <td>None</td>
+          <td>List of content sections and highlights</td>
+        </tr>
+        <tr>
+          <td><code>POST /assessment</code></td>
+          <td>Validates survey data and returns a score</td>
+          <td>Assessment payload</td>
+          <td>Normalized input + score</td>
+        </tr>
+        <tr>
+          <td><code>POST /recommendations</code></td>
+          <td>Generates survey recommendations</td>
+          <td>Assessment payload</td>
+          <td>Structured recommendation response</td>
+        </tr>
+        <tr>
+          <td><code>POST /plate/optimize</code></td>
+          <td>Rebalances the user-built plate</td>
+          <td>Plate items + profile</td>
+          <td>Optimized plate + adjustments + tips</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>4. Data Models and Validation</h2>
+    <p>
+      The file <code>backend/app/models.py</code> is the contract for the whole system. If
+      someone asks what data the app accepts or returns, this is the first place to inspect.
+    </p>
+
+    <h3>Survey model</h3>
+    <p>The survey accepts fields like:</p>
+    <ul>
+      <li><code>age_group</code></li>
+      <li><code>gender</code></li>
+      <li><code>water_intake_liters</code></li>
+      <li><code>hydration_level</code></li>
+      <li><code>meal_pattern</code></li>
+      <li><code>produce_frequency</code></li>
+      <li><code>snack_preference</code></li>
+      <li><code>sugary_drinks_per_week</code></li>
+      <li><code>activity_level</code></li>
+    </ul>
+
+    <p>
+      Each field is constrained. For example, water intake cannot exceed the allowed range,
+      and sugary drinks per week cannot be negative. This prevents invalid data from reaching
+      the scoring logic.
+    </p>
+
+    <h3>Plate planner model</h3>
+    <p>The plate planner uses:</p>
+    <ul>
+      <li><code>PlateItem</code>: one chosen food plus its category</li>
+      <li><code>PlateProfile</code>: age group, gender, body weight, activity level, and goal</li>
+      <li><code>PlatePlanRequest</code>: complete input payload</li>
+      <li><code>PlatePlanResponse</code>: score, summary, target split, optimized plate, adjustments, and tips</li>
+    </ul>
+
+    <p>
+      The main advantage of strong schemas is that the frontend and backend stay in sync.
+      If you change a field in the backend, you immediately know what must change in the frontend.
+    </p>
+
+    <h2>5. How the Current Recommendation Engine Works</h2>
+    <p>
+      The recommendation engine is in <code>backend/app/services/recommendations.py</code>.
+      It is not learning from data. Instead, it uses expert-designed rules. This is useful
+      for an MVP because it is easy to understand, debug, and explain.
+    </p>
+
+    <h3>Survey scoring logic</h3>
+    <p>The backend starts with a base score, then adjusts it up or down.</p>
+    <ul>
+      <li>If water intake is high enough, score increases.</li>
+      <li>If meals are irregular, score decreases.</li>
+      <li>If produce intake is frequent, score increases.</li>
+      <li>If snack preference is packaged food, score decreases.</li>
+      <li>If sugary drinks are frequent, score decreases.</li>
+      <li>If activity level is higher, score increases.</li>
+    </ul>
+
+    <p>This is basically a weighted scoring function.</p>
+
+    <pre>
+score = 50
+score += hydration_adjustment
+score += meal_pattern_adjustment
+score += produce_adjustment
+score += snack_adjustment
+score += activity_adjustment
+score -= sugary_drink_penalty
+score = clamp(score, 0, 100)
+    </pre>
+
+    <h3>Recommendation construction</h3>
+    <p>
+      After the score is computed, the backend builds structured content:
+    </p>
+    <ul>
+      <li>User summary bands such as hydration band and meal pattern band</li>
+      <li>Risk indicators such as hydration stability and sugar displacement</li>
+      <li>Guidance cards for hydration, plate design, smart swaps, and nutrient education</li>
+    </ul>
+
+    <p>
+      The key design choice is that the backend returns structured data, not HTML. This means
+      the frontend is free to display the recommendations as cards, lists, graphs, or something else later.
+    </p>
+
+    <h2>6. How the Plate Planner Works</h2>
+    <h3>User interaction</h3>
+    <ol>
+      <li>The user opens the Plate page.</li>
+      <li>The user picks one item for each category: base, protein, vegetable, side.</li>
+      <li>The user can search through the options in each category.</li>
+      <li>The user adds profile details such as age group and body weight.</li>
+      <li>The frontend sends the chosen items and profile to <code>POST /plate/optimize</code>.</li>
+      <li>The backend evaluates the plate and returns a corrected version.</li>
+    </ol>
+
+    <h3>Backend plate logic</h3>
+    <p>
+      The backend uses a category library named <code>PLATE_LIBRARY</code>. Each item is mapped to:
+    </p>
+    <ul>
+      <li>a valid replacement item</li>
+      <li>a quality tag such as <code>smart</code>, <code>strong</code>, <code>refined</code>, <code>weak</code>, or <code>missing</code></li>
+    </ul>
+
+    <p>
+      For example, <code>white rice</code> is treated as refined, so it can be replaced with
+      <code>brown rice</code>. <code>soft drink</code> is weak, so it can be replaced with
+      <code>water</code>. The important constraint is that replacements are only chosen from the same allowed options list used by the frontend.
+    </p>
+
+    <h3>Why that constraint matters</h3>
+    <p>
+      If the backend suggests foods that the user never saw in the picker, the experience feels inconsistent.
+      By forcing replacements to come from the allowed option list:
+    </p>
+    <ul>
+      <li>the frontend and backend stay aligned</li>
+      <li>the user can understand the correction</li>
+      <li>future analytics stay cleaner because the food vocabulary is controlled</li>
+    </ul>
+
+    <div class="page-break"></div>
+
+    <h2>7. Heavy ML Explanation: What Exists Now vs What a Real Model Would Be</h2>
+    <h3>What exists now</h3>
+    <p>
+      The current system is rule-based. In ML terms, you can think of it as a manually coded
+      decision function. The rules are fixed by the developer. They do not improve automatically.
+    </p>
+
+    <h3>What a real ML model would do</h3>
+    <p>
+      A real ML system would learn patterns from historical data. Instead of manually writing
+      every rule, you would collect examples of users, their inputs, and the desired outputs.
+      Then you would train a model to predict recommendations, risk levels, or meal corrections.
+    </p>
+
+    <h3>Possible ML tasks in this project</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>ML task</th>
+          <th>Input</th>
+          <th>Output</th>
+          <th>Suggested model type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Risk classification</td>
+          <td>Survey features</td>
+          <td>Low / medium / high risk labels</td>
+          <td>Logistic regression, XGBoost, random forest</td>
+        </tr>
+        <tr>
+          <td>Nutrition score prediction</td>
+          <td>Survey and behavior features</td>
+          <td>Continuous score</td>
+          <td>Linear regression, gradient boosting regressor</td>
+        </tr>
+        <tr>
+          <td>Meal correction recommendation</td>
+          <td>Plate composition + profile</td>
+          <td>Best replacement or plate split</td>
+          <td>Ranking model, multiclass classifier, hybrid rule + ML system</td>
+        </tr>
+        <tr>
+          <td>User clustering</td>
+          <td>Habit vectors</td>
+          <td>User segments</td>
+          <td>K-means or hierarchical clustering</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>How the data would look</h3>
+    <p>You need a dataset with rows like this:</p>
+    <pre>
+age_group, gender, body_weight_kg, water_intake_liters, meal_pattern,
+produce_frequency, snack_preference, sugary_drinks_per_week,
+activity_level, selected_base, selected_protein, selected_vegetable,
+selected_side, goal, output_score, output_risk_level, corrected_base,
+corrected_side, recommended_actions
+    </pre>
+
+    <p>
+      Every row is one example. The left side contains features. The right side contains targets.
+      Targets are the things the model should learn to predict.
+    </p>
+
+    <h3>Feature engineering</h3>
+    <p>
+      Machine learning models do not understand raw text values directly in most traditional pipelines.
+      You usually convert them into numeric features.
+    </p>
+    <ul>
+      <li>One-hot encode categorical fields like <code>meal_pattern</code> and <code>goal</code>.</li>
+      <li>Use numeric fields directly for body weight, water intake, and sugary drink count.</li>
+      <li>Optionally derive extra features like hydration deficit, processed food count, or vegetable absence flag.</li>
+    </ul>
+
+    <h3>Example ML training pipeline</h3>
+    <pre>
+1. Collect survey and plate data
+2. Clean invalid and missing rows
+3. Convert categories to numerical features
+4. Split into train / validation / test sets
+5. Train a baseline model
+6. Evaluate precision, recall, F1, or RMSE depending on task
+7. Save the fitted model
+8. Load that saved model inside the FastAPI app
+9. Use it during inference
+    </pre>
+
+    <h3>Why start with baseline models</h3>
+    <p>
+      For a project like this, a simpler model such as logistic regression, random forest,
+      or XGBoost is often better than jumping straight to a deep neural network.
+      Reasons:
+    </p>
+    <ul>
+      <li>The dataset is likely tabular, not image or language data.</li>
+      <li>You need explainability for health-related recommendations.</li>
+      <li>You can inspect feature importance and justify why a decision was made.</li>
+      <li>Development is faster and easier to debug.</li>
+    </ul>
+
+    <h3>Recommended ML architecture for this exact project</h3>
+    <p>A practical production version would be hybrid:</p>
+    <ol>
+      <li>Use rules for safety constraints and hard nutritional boundaries.</li>
+      <li>Use ML for scoring, risk prediction, and ranking the best swaps.</li>
+      <li>Post-process model output through rules so the final recommendation is always safe and valid.</li>
+    </ol>
+
+    <div class="note">
+      Best practice: do not let a pure model output unsupported foods or invalid meal plans.
+      Let the model rank candidates, then filter the final answer through allowed option lists
+      and safety checks.
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>8. How Someone Would Code the ML Version</h2>
+    <h3>Step 1: create a training dataset</h3>
+    <p>
+      Save user survey and plate interactions to a database. Later export them to CSV or Parquet
+      for training. At minimum you need:
+    </p>
+    <ul>
+      <li>user inputs</li>
+      <li>the recommendation shown</li>
+      <li>whether the user accepted the recommendation</li>
+      <li>optionally later outcomes, such as adherence or follow-up surveys</li>
+    </ul>
+
+    <h3>Step 2: build a training script</h3>
+    <p>
+      A simple training script can live in something like <code>backend/ml/train_model.py</code>.
+      That script would:
+    </p>
+    <pre>
+load data
+clean data
+encode features
+split train/test
+fit model
+evaluate metrics
+save model.pkl
+save feature_pipeline.pkl
+    </pre>
+
+    <h3>Step 3: load the model in FastAPI</h3>
+    <p>
+      At app startup, load the serialized model and preprocessing pipeline. Then wrap inference in a service.
+    </p>
+
+    <pre>
+from joblib import load
+
+model = load("model.joblib")
+encoder = load("encoder.joblib")
+
+def predict_recommendation(payload):
+    features = encoder.transform([payload_to_dict(payload)])
+    return model.predict(features)
+    </pre>
+
+    <h3>Step 4: keep the API contract stable</h3>
+    <p>
+      The best part of the current code structure is that you do not need to redesign the frontend.
+      The frontend already expects structured JSON. So you can:
+    </p>
+    <ul>
+      <li>keep the same request payload</li>
+      <li>replace the rule logic behind the endpoint</li>
+      <li>return the same response shape</li>
+    </ul>
+
+    <h3>Step 5: add model fallback logic</h3>
+    <p>
+      A safe production pattern is:
+    </p>
+    <pre>
+if model is available and input is valid:
+    run ML prediction
+    post-process output through business rules
+else:
+    use the current rule-based engine
+    </pre>
+
+    <h3>Step 6: evaluate the model correctly</h3>
+    <p>
+      Do not only check training accuracy. Evaluate on unseen data. For health-oriented suggestions,
+      you also want interpretability and consistency. Useful checks:
+    </p>
+    <ul>
+      <li>accuracy for discrete label tasks</li>
+      <li>precision and recall for high-risk predictions</li>
+      <li>confusion matrix to see where errors happen</li>
+      <li>feature importance to understand which variables are driving predictions</li>
+      <li>business review by a nutrition expert if possible</li>
+    </ul>
+
+    <h2>9. How to Code the Current Project from Scratch</h2>
+    <h3>Backend steps</h3>
+    <ol>
+      <li>Create a FastAPI app in <code>main.py</code>.</li>
+      <li>Define Pydantic models in <code>models.py</code>.</li>
+      <li>Create route handlers for health, content, survey assessment, recommendations, and plate optimization.</li>
+      <li>Move business logic into a service file instead of putting everything inside route functions.</li>
+      <li>Write tests using <code>pytest</code> and <code>TestClient</code>.</li>
+    </ol>
+
+    <h3>Frontend steps</h3>
+    <ol>
+      <li>Create the React app with Vite.</li>
+      <li>Create one main stateful component, <code>App.jsx</code>.</li>
+      <li>Use hash-based navigation for page-like views.</li>
+      <li>Create separate components for quiz, survey, plate planner, research, and results.</li>
+      <li>Put fetch logic in a small API utility file.</li>
+      <li>Render backend responses as reusable UI cards.</li>
+    </ol>
+
+    <h3>Why this structure is good</h3>
+    <ul>
+      <li>The frontend is modular.</li>
+      <li>The backend is modular.</li>
+      <li>Validation is centralized.</li>
+      <li>The app is easy to extend with ML later.</li>
+      <li>The test surface is small and understandable.</li>
+    </ul>
+
+    <h2>10. Suggested Next Steps</h2>
+    <ol>
+      <li>Add a database to store user inputs and plate interactions.</li>
+      <li>Log accepted vs rejected recommendations.</li>
+      <li>Create a training dataset from real usage data.</li>
+      <li>Train a first baseline model for score or risk prediction.</li>
+      <li>Integrate the model behind the same FastAPI endpoints.</li>
+      <li>Add explainability data to the response, such as top factors behind the prediction.</li>
+      <li>Keep safety and valid food constraints rule-based even after ML is added.</li>
+    </ol>
+
+    <h2>11. Final Summary</h2>
+    <p>
+      This project already has a strong base for a future ML system because the frontend and backend
+      are separated cleanly, the schemas are explicit, and the response format is structured.
+      Right now the intelligence is rule-based. To turn it into a true ML application, the main
+      missing pieces are historical data, a training pipeline, a saved model artifact, and an inference
+      layer that plugs into the existing API.
+    </p>
+    <p class="small">
+      Generated for the codebase in <code>/Users/harshshukla/Documents/New project</code>.
+    </p>
+  </body>
+</html>

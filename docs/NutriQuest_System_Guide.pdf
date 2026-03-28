@@ -1,0 +1,1626 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+2 0 obj
+<< /Length 1270 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(System Guide) Tj
+T*
+( ) Tj
+T*
+(NutriQuest: Complete Technical Explanation) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(This document explains what the current project does, how the code is structured,) Tj
+T*
+(how the recommendation logic works, how the plate planner works, and how to turn) Tj
+T*
+(the current rule-based engine into a real machine learning system.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Frontend) Tj
+T*
+(React + Vite single-page app with page-like hash navigation, quiz, survey, plate planner, and) Tj
+T*
+(results views.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Backend) Tj
+T*
+(FastAPI service with validated request schemas, rule-based recommendations, and a plate) Tj
+T*
+(optimization endpoint.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Current Intelligence Layer) Tj
+T*
+(Deterministic logic in Python. It behaves like a simple expert system, not a trained ML model) Tj
+T*
+(yet.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Future Direction) Tj
+T*
+(Train an ML model on survey, meal, and outcome data, then serve predictions through the same) Tj
+T*
+(API contract.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(1. What This Project Does) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+3 0 obj
+<< /Length 1745 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+(NutriQuest is a nutrition-focused web app. A user can move through different views:) Tj
+T*
+(home, quiz, research, survey, plate planner, and results. The app collects user) Tj
+T*
+(information such as age group, hydration behavior, meal habits, snack habits, sugary) Tj
+T*
+(drink frequency, activity level, body weight, and plate selections. It then returns) Tj
+T*
+(recommendations.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(There are two kinds of recommendation flows in the current system:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- The survey flow, which produces hydration, plate, swap, and nutrient guidance.) Tj
+T*
+( ) Tj
+T*
+(- The plate planner flow, which lets the user design a meal and receive a corrected version.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Important: the current project uses a rule-based decision engine. It is structured so) Tj
+T*
+(that a future ML model can replace or augment the rules, but no trained model is being) Tj
+T*
+(loaded or inferred yet.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(2. High-Level Architecture) Tj
+T*
+( ) Tj
+T*
+(Frontend flow) Tj
+T*
+( ) Tj
+T*
+(The frontend lives in frontend/src. The entrypoint is App.jsx.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- App.jsx stores the active page, survey state, quiz state, recommendation data, and plate) Tj
+T*
+(  planner data.) Tj
+T*
+( ) Tj
+T*
+(- lib/api.js sends JSON requests to the backend.) Tj
+T*
+( ) Tj
+T*
+(- Each page is implemented as a React section component.) Tj
+T*
+( ) Tj
+T*
+(- Page navigation is handled using the URL hash such as #home, #survey, and #plate.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Backend flow) Tj
+T*
+( ) Tj
+T*
+(The backend lives in backend/app.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- main.py defines the FastAPI app and routes.) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Length 1169 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+(- models.py defines request and response schemas with Pydantic.) Tj
+T*
+( ) Tj
+T*
+(- content.py stores static research content.) Tj
+T*
+( ) Tj
+T*
+(- services/recommendations.py contains the scoring, recommendation, and plate optimization) Tj
+T*
+(  logic.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Current request/response sequence) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Frontend form or planner) Tj
+T*
+(-> sends JSON to FastAPI) Tj
+T*
+(-> FastAPI validates data with Pydantic) Tj
+T*
+(-> recommendation service processes input) Tj
+T*
+(-> backend returns structured JSON) Tj
+T*
+(-> React renders cards, summaries, risks, swaps, or optimized plate items) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(3. Current API Endpoints) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Endpoint |) Tj
+T*
+(Purpose |) Tj
+T*
+(Input |) Tj
+T*
+(Output |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(GET /health |) Tj
+T*
+(Basic health check |) Tj
+T*
+(None |) Tj
+T*
+({"status":"ok"} |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(GET /content/sections |) Tj
+T*
+(Loads research page content |) Tj
+T*
+(None |) Tj
+T*
+(List of content sections and highlights |) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Length 1108 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(POST /assessment |) Tj
+T*
+(Validates survey data and returns a score |) Tj
+T*
+(Assessment payload |) Tj
+T*
+(Normalized input + score |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(POST /recommendations |) Tj
+T*
+(Generates survey recommendations |) Tj
+T*
+(Assessment payload |) Tj
+T*
+(Structured recommendation response |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(POST /plate/optimize |) Tj
+T*
+(Rebalances the user-built plate |) Tj
+T*
+(Plate items + profile |) Tj
+T*
+(Optimized plate + adjustments + tips |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(4. Data Models and Validation) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(The file backend/app/models.py is the contract for the whole system. If) Tj
+T*
+(someone asks what data the app accepts or returns, this is the first place to inspect.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Survey model) Tj
+T*
+( ) Tj
+T*
+(The survey accepts fields like:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- age_group) Tj
+T*
+( ) Tj
+T*
+(- gender) Tj
+T*
+( ) Tj
+T*
+(- water_intake_liters) Tj
+T*
+( ) Tj
+T*
+(- hydration_level) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Length 1500 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+(- meal_pattern) Tj
+T*
+( ) Tj
+T*
+(- produce_frequency) Tj
+T*
+( ) Tj
+T*
+(- snack_preference) Tj
+T*
+( ) Tj
+T*
+(- sugary_drinks_per_week) Tj
+T*
+( ) Tj
+T*
+(- activity_level) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Each field is constrained. For example, water intake cannot exceed the allowed range,) Tj
+T*
+(and sugary drinks per week cannot be negative. This prevents invalid data from reaching) Tj
+T*
+(the scoring logic.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Plate planner model) Tj
+T*
+( ) Tj
+T*
+(The plate planner uses:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- PlateItem: one chosen food plus its category) Tj
+T*
+( ) Tj
+T*
+(- PlateProfile: age group, gender, body weight, activity level, and goal) Tj
+T*
+( ) Tj
+T*
+(- PlatePlanRequest: complete input payload) Tj
+T*
+( ) Tj
+T*
+(- PlatePlanResponse: score, summary, target split, optimized plate, adjustments, and tips) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(The main advantage of strong schemas is that the frontend and backend stay in sync.) Tj
+T*
+(If you change a field in the backend, you immediately know what must change in the frontend.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(5. How the Current Recommendation Engine Works) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(The recommendation engine is in backend/app/services/recommendations.py.) Tj
+T*
+(It is not learning from data. Instead, it uses expert-designed rules. This is useful) Tj
+T*
+(for an MVP because it is easy to understand, debug, and explain.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 1427 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+(Survey scoring logic) Tj
+T*
+( ) Tj
+T*
+(The backend starts with a base score, then adjusts it up or down.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- If water intake is high enough, score increases.) Tj
+T*
+( ) Tj
+T*
+(- If meals are irregular, score decreases.) Tj
+T*
+( ) Tj
+T*
+(- If produce intake is frequent, score increases.) Tj
+T*
+( ) Tj
+T*
+(- If snack preference is packaged food, score decreases.) Tj
+T*
+( ) Tj
+T*
+(- If sugary drinks are frequent, score decreases.) Tj
+T*
+( ) Tj
+T*
+(- If activity level is higher, score increases.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(This is basically a weighted scoring function.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(score = 50) Tj
+T*
+(score += hydration_adjustment) Tj
+T*
+(score += meal_pattern_adjustment) Tj
+T*
+(score += produce_adjustment) Tj
+T*
+(score += snack_adjustment) Tj
+T*
+(score += activity_adjustment) Tj
+T*
+(score -= sugary_drink_penalty) Tj
+T*
+(score = clamp\(score, 0, 100\)) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Recommendation construction) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(After the score is computed, the backend builds structured content:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- User summary bands such as hydration band and meal pattern band) Tj
+T*
+( ) Tj
+T*
+(- Risk indicators such as hydration stability and sugar displacement) Tj
+T*
+( ) Tj
+T*
+(- Guidance cards for hydration, plate design, smart swaps, and nutrient education) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 1564 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+(The key design choice is that the backend returns structured data, not HTML. This means) Tj
+T*
+(the frontend is free to display the recommendations as cards, lists, graphs, or something else) Tj
+T*
+(later.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(6. How the Plate Planner Works) Tj
+T*
+( ) Tj
+T*
+(User interaction) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- The user opens the Plate page.) Tj
+T*
+( ) Tj
+T*
+(- The user picks one item for each category: base, protein, vegetable, side.) Tj
+T*
+( ) Tj
+T*
+(- The user can search through the options in each category.) Tj
+T*
+( ) Tj
+T*
+(- The user adds profile details such as age group and body weight.) Tj
+T*
+( ) Tj
+T*
+(- The frontend sends the chosen items and profile to POST /plate/optimize.) Tj
+T*
+( ) Tj
+T*
+(- The backend evaluates the plate and returns a corrected version.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Backend plate logic) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(The backend uses a category library named PLATE_LIBRARY. Each item is mapped to:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- a valid replacement item) Tj
+T*
+( ) Tj
+T*
+(- a quality tag such as smart, strong, refined, weak, or missing) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(For example, white rice is treated as refined, so it can be replaced with) Tj
+T*
+(brown rice. soft drink is weak, so it can be replaced with) Tj
+T*
+(water. The important constraint is that replacements are only chosen from the same allowed) Tj
+T*
+(options list used by the frontend.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Why that constraint matters) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 1437 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+(If the backend suggests foods that the user never saw in the picker, the experience feels) Tj
+T*
+(inconsistent.) Tj
+T*
+(By forcing replacements to come from the allowed option list:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- the frontend and backend stay aligned) Tj
+T*
+( ) Tj
+T*
+(- the user can understand the correction) Tj
+T*
+( ) Tj
+T*
+(- future analytics stay cleaner because the food vocabulary is controlled) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(7. Heavy ML Explanation: What Exists Now vs What a Real Model Would Be) Tj
+T*
+( ) Tj
+T*
+(What exists now) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(The current system is rule-based. In ML terms, you can think of it as a manually coded) Tj
+T*
+(decision function. The rules are fixed by the developer. They do not improve automatically.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(What a real ML model would do) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(A real ML system would learn patterns from historical data. Instead of manually writing) Tj
+T*
+(every rule, you would collect examples of users, their inputs, and the desired outputs.) Tj
+T*
+(Then you would train a model to predict recommendations, risk levels, or meal corrections.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Possible ML tasks in this project) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(ML task |) Tj
+T*
+(Input |) Tj
+T*
+(Output |) Tj
+T*
+(Suggested model type |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Length 1417 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+(Risk classification |) Tj
+T*
+(Survey features |) Tj
+T*
+(Low / medium / high risk labels |) Tj
+T*
+(Logistic regression, XGBoost, random forest |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Nutrition score prediction |) Tj
+T*
+(Survey and behavior features |) Tj
+T*
+(Continuous score |) Tj
+T*
+(Linear regression, gradient boosting regressor |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Meal correction recommendation |) Tj
+T*
+(Plate composition + profile |) Tj
+T*
+(Best replacement or plate split |) Tj
+T*
+(Ranking model, multiclass classifier, hybrid rule + ML system |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(User clustering |) Tj
+T*
+(Habit vectors |) Tj
+T*
+(User segments |) Tj
+T*
+(K-means or hierarchical clustering |) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(How the data would look) Tj
+T*
+( ) Tj
+T*
+(You need a dataset with rows like this:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(age_group, gender, body_weight_kg, water_intake_liters, meal_pattern,) Tj
+T*
+(produce_frequency, snack_preference, sugary_drinks_per_week,) Tj
+T*
+(activity_level, selected_base, selected_protein, selected_vegetable,) Tj
+T*
+(selected_side, goal, output_score, output_risk_level, corrected_base,) Tj
+T*
+(corrected_side, recommended_actions) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Every row is one example. The left side contains features. The right side contains targets.) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Length 1575 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+(Targets are the things the model should learn to predict.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Feature engineering) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Machine learning models do not understand raw text values directly in most traditional) Tj
+T*
+(pipelines.) Tj
+T*
+(You usually convert them into numeric features.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- One-hot encode categorical fields like meal_pattern and goal.) Tj
+T*
+( ) Tj
+T*
+(- Use numeric fields directly for body weight, water intake, and sugary drink count.) Tj
+T*
+( ) Tj
+T*
+(- Optionally derive extra features like hydration deficit, processed food count, or) Tj
+T*
+(  vegetable absence flag.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Example ML training pipeline) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(1. Collect survey and plate data) Tj
+T*
+(2. Clean invalid and missing rows) Tj
+T*
+(3. Convert categories to numerical features) Tj
+T*
+(4. Split into train / validation / test sets) Tj
+T*
+(5. Train a baseline model) Tj
+T*
+(6. Evaluate precision, recall, F1, or RMSE depending on task) Tj
+T*
+(7. Save the fitted model) Tj
+T*
+(8. Load that saved model inside the FastAPI app) Tj
+T*
+(9. Use it during inference) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Why start with baseline models) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(For a project like this, a simpler model such as logistic regression, random forest,) Tj
+T*
+(or XGBoost is often better than jumping straight to a deep neural network.) Tj
+T*
+(Reasons:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- The dataset is likely tabular, not image or language data.) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+12 0 obj
+<< /Length 1532 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+(- You need explainability for health-related recommendations.) Tj
+T*
+( ) Tj
+T*
+(- You can inspect feature importance and justify why a decision was made.) Tj
+T*
+( ) Tj
+T*
+(- Development is faster and easier to debug.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Recommended ML architecture for this exact project) Tj
+T*
+( ) Tj
+T*
+(A practical production version would be hybrid:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- Use rules for safety constraints and hard nutritional boundaries.) Tj
+T*
+( ) Tj
+T*
+(- Use ML for scoring, risk prediction, and ranking the best swaps.) Tj
+T*
+( ) Tj
+T*
+(- Post-process model output through rules so the final recommendation is always safe and) Tj
+T*
+(  valid.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Best practice: do not let a pure model output unsupported foods or invalid meal plans.) Tj
+T*
+(Let the model rank candidates, then filter the final answer through allowed option lists) Tj
+T*
+(and safety checks.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(8. How Someone Would Code the ML Version) Tj
+T*
+( ) Tj
+T*
+(Step 1: create a training dataset) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Save user survey and plate interactions to a database. Later export them to CSV or Parquet) Tj
+T*
+(for training. At minimum you need:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- user inputs) Tj
+T*
+( ) Tj
+T*
+(- the recommendation shown) Tj
+T*
+( ) Tj
+T*
+(- whether the user accepted the recommendation) Tj
+T*
+( ) Tj
+T*
+(- optionally later outcomes, such as adherence or follow-up surveys) Tj
+ET
+endstream
+endobj
+13 0 obj
+<< /Length 1263 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Step 2: build a training script) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(A simple training script can live in something like backend/ml/train_model.py.) Tj
+T*
+(That script would:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(load data) Tj
+T*
+(clean data) Tj
+T*
+(encode features) Tj
+T*
+(split train/test) Tj
+T*
+(fit model) Tj
+T*
+(evaluate metrics) Tj
+T*
+(save model.pkl) Tj
+T*
+(save feature_pipeline.pkl) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Step 3: load the model in FastAPI) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(At app startup, load the serialized model and preprocessing pipeline. Then wrap inference in a) Tj
+T*
+(service.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(from joblib import load) Tj
+T*
+( ) Tj
+T*
+(model = load\("model.joblib"\)) Tj
+T*
+(encoder = load\("encoder.joblib"\)) Tj
+T*
+( ) Tj
+T*
+(def predict_recommendation\(payload\):) Tj
+T*
+(features = encoder.transform\([payload_to_dict\(payload\)]\)) Tj
+T*
+(return model.predict\(features\)) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Step 4: keep the API contract stable) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(The best part of the current code structure is that you do not need to redesign the frontend.) Tj
+T*
+(The frontend already expects structured JSON. So you can:) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+14 0 obj
+<< /Length 1286 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+(- keep the same request payload) Tj
+T*
+( ) Tj
+T*
+(- replace the rule logic behind the endpoint) Tj
+T*
+( ) Tj
+T*
+(- return the same response shape) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Step 5: add model fallback logic) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(A safe production pattern is:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(if model is available and input is valid:) Tj
+T*
+(run ML prediction) Tj
+T*
+(post-process output through business rules) Tj
+T*
+(else:) Tj
+T*
+(use the current rule-based engine) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Step 6: evaluate the model correctly) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Do not only check training accuracy. Evaluate on unseen data. For health-oriented suggestions,) Tj
+T*
+(you also want interpretability and consistency. Useful checks:) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- accuracy for discrete label tasks) Tj
+T*
+( ) Tj
+T*
+(- precision and recall for high-risk predictions) Tj
+T*
+( ) Tj
+T*
+(- confusion matrix to see where errors happen) Tj
+T*
+( ) Tj
+T*
+(- feature importance to understand which variables are driving predictions) Tj
+T*
+( ) Tj
+T*
+(- business review by a nutrition expert if possible) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(9. How to Code the Current Project from Scratch) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+15 0 obj
+<< /Length 1327 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+(Backend steps) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- Create a FastAPI app in main.py.) Tj
+T*
+( ) Tj
+T*
+(- Define Pydantic models in models.py.) Tj
+T*
+( ) Tj
+T*
+(- Create route handlers for health, content, survey assessment, recommendations, and plate) Tj
+T*
+(  optimization.) Tj
+T*
+( ) Tj
+T*
+(- Move business logic into a service file instead of putting everything inside route) Tj
+T*
+(  functions.) Tj
+T*
+( ) Tj
+T*
+(- Write tests using pytest and TestClient.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Frontend steps) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- Create the React app with Vite.) Tj
+T*
+( ) Tj
+T*
+(- Create one main stateful component, App.jsx.) Tj
+T*
+( ) Tj
+T*
+(- Use hash-based navigation for page-like views.) Tj
+T*
+( ) Tj
+T*
+(- Create separate components for quiz, survey, plate planner, research, and results.) Tj
+T*
+( ) Tj
+T*
+(- Put fetch logic in a small API utility file.) Tj
+T*
+( ) Tj
+T*
+(- Render backend responses as reusable UI cards.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Why this structure is good) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- The frontend is modular.) Tj
+T*
+( ) Tj
+T*
+(- The backend is modular.) Tj
+T*
+( ) Tj
+T*
+(- Validation is centralized.) Tj
+T*
+( ) Tj
+T*
+(- The app is easy to extend with ML later.) Tj
+T*
+( ) Tj
+T*
+(- The test surface is small and understandable.) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+16 0 obj
+<< /Length 1357 >>
+stream
+BT
+/F1 11 Tf
+50 0 0 1 50 790 Tm
+14 TL
+( ) Tj
+T*
+( ) Tj
+T*
+(10. Suggested Next Steps) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(- Add a database to store user inputs and plate interactions.) Tj
+T*
+( ) Tj
+T*
+(- Log accepted vs rejected recommendations.) Tj
+T*
+( ) Tj
+T*
+(- Create a training dataset from real usage data.) Tj
+T*
+( ) Tj
+T*
+(- Train a first baseline model for score or risk prediction.) Tj
+T*
+( ) Tj
+T*
+(- Integrate the model behind the same FastAPI endpoints.) Tj
+T*
+( ) Tj
+T*
+(- Add explainability data to the response, such as top factors behind the prediction.) Tj
+T*
+( ) Tj
+T*
+(- Keep safety and valid food constraints rule-based even after ML is added.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(11. Final Summary) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(This project already has a strong base for a future ML system because the frontend and backend) Tj
+T*
+(are separated cleanly, the schemas are explicit, and the response format is structured.) Tj
+T*
+(Right now the intelligence is rule-based. To turn it into a true ML application, the main) Tj
+T*
+(missing pieces are historical data, a training pipeline, a saved model artifact, and an) Tj
+T*
+(inference) Tj
+T*
+(layer that plugs into the existing API.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+(Generated for the codebase in /Users/harshshukla/Documents/New project.) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+T*
+( ) Tj
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Pages /Kids [18 0 R 19 0 R 20 0 R 21 0 R 22 0 R 23 0 R 24 0 R 25 0 R 26 0 R 27 0 R 28 0 R 29 0 R 30 0 R 31 0 R 32 0 R] /Count 15 >>
+endobj
+18 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 2 0 R >>
+endobj
+19 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 3 0 R >>
+endobj
+20 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 4 0 R >>
+endobj
+21 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 5 0 R >>
+endobj
+22 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 6 0 R >>
+endobj
+23 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 7 0 R >>
+endobj
+24 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 8 0 R >>
+endobj
+25 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 9 0 R >>
+endobj
+26 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 10 0 R >>
+endobj
+27 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 11 0 R >>
+endobj
+28 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 12 0 R >>
+endobj
+29 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 13 0 R >>
+endobj
+30 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 14 0 R >>
+endobj
+31 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 15 0 R >>
+endobj
+32 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 1 0 R >> >> /Contents 16 0 R >>
+endobj
+33 0 obj
+<< /Type /Catalog /Pages 17 0 R >>
+endobj
+xref
+0 34
+0000000000 65535 f 
+0000000015 00000 n 
+0000000085 00000 n 
+0000001407 00000 n 
+0000003204 00000 n 
+0000004425 00000 n 
+0000005585 00000 n 
+0000007137 00000 n 
+0000008616 00000 n 
+0000010232 00000 n 
+0000011721 00000 n 
+0000013191 00000 n 
+0000014819 00000 n 
+0000016404 00000 n 
+0000017720 00000 n 
+0000019059 00000 n 
+0000020439 00000 n 
+0000021849 00000 n 
+0000022007 00000 n 
+0000022135 00000 n 
+0000022263 00000 n 
+0000022391 00000 n 
+0000022519 00000 n 
+0000022647 00000 n 
+0000022775 00000 n 
+0000022903 00000 n 
+0000023031 00000 n 
+0000023160 00000 n 
+0000023289 00000 n 
+0000023418 00000 n 
+0000023547 00000 n 
+0000023676 00000 n 
+0000023805 00000 n 
+0000023934 00000 n 
+trailer
+<< /Size 34 /Root 33 0 R >>
+startxref
+23985
+%%EOF

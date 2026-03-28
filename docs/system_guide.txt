@@ -1,0 +1,696 @@
+
+
+
+
+
+System Guide
+
+NutriQuest: Complete Technical Explanation
+
+
+This document explains what the current project does, how the code is structured,
+how the recommendation logic works, how the plate planner works, and how to turn
+the current rule-based engine into a real machine learning system.
+
+
+
+
+Frontend
+React + Vite single-page app with page-like hash navigation, quiz, survey, plate planner, and
+results views.
+
+
+
+Backend
+FastAPI service with validated request schemas, rule-based recommendations, and a plate
+optimization endpoint.
+
+
+
+Current Intelligence Layer
+Deterministic logic in Python. It behaves like a simple expert system, not a trained ML model
+yet.
+
+
+
+Future Direction
+Train an ML model on survey, meal, and outcome data, then serve predictions through the same
+API contract.
+
+
+
+
+
+
+1. What This Project Does
+
+
+NutriQuest is a nutrition-focused web app. A user can move through different views:
+home, quiz, research, survey, plate planner, and results. The app collects user
+information such as age group, hydration behavior, meal habits, snack habits, sugary
+drink frequency, activity level, body weight, and plate selections. It then returns
+recommendations.
+
+
+
+There are two kinds of recommendation flows in the current system:
+
+
+
+- The survey flow, which produces hydration, plate, swap, and nutrient guidance.
+
+- The plate planner flow, which lets the user design a meal and receive a corrected version.
+
+
+
+Important: the current project uses a rule-based decision engine. It is structured so
+that a future ML model can replace or augment the rules, but no trained model is being
+loaded or inferred yet.
+
+
+2. High-Level Architecture
+
+Frontend flow
+
+The frontend lives in frontend/src. The entrypoint is App.jsx.
+
+
+- App.jsx stores the active page, survey state, quiz state, recommendation data, and plate
+  planner data.
+
+- lib/api.js sends JSON requests to the backend.
+
+- Each page is implemented as a React section component.
+
+- Page navigation is handled using the URL hash such as #home, #survey, and #plate.
+
+
+
+Backend flow
+
+The backend lives in backend/app.
+
+
+- main.py defines the FastAPI app and routes.
+
+- models.py defines request and response schemas with Pydantic.
+
+- content.py stores static research content.
+
+- services/recommendations.py contains the scoring, recommendation, and plate optimization
+  logic.
+
+
+
+Current request/response sequence
+
+
+
+Frontend form or planner
+-> sends JSON to FastAPI
+-> FastAPI validates data with Pydantic
+-> recommendation service processes input
+-> backend returns structured JSON
+-> React renders cards, summaries, risks, swaps, or optimized plate items
+
+
+3. Current API Endpoints
+
+
+
+
+Endpoint |
+Purpose |
+Input |
+Output |
+
+
+
+
+
+GET /health |
+Basic health check |
+None |
+{"status":"ok"} |
+
+
+
+GET /content/sections |
+Loads research page content |
+None |
+List of content sections and highlights |
+
+
+
+POST /assessment |
+Validates survey data and returns a score |
+Assessment payload |
+Normalized input + score |
+
+
+
+POST /recommendations |
+Generates survey recommendations |
+Assessment payload |
+Structured recommendation response |
+
+
+
+POST /plate/optimize |
+Rebalances the user-built plate |
+Plate items + profile |
+Optimized plate + adjustments + tips |
+
+
+
+
+
+
+
+4. Data Models and Validation
+
+
+The file backend/app/models.py is the contract for the whole system. If
+someone asks what data the app accepts or returns, this is the first place to inspect.
+
+
+Survey model
+
+The survey accepts fields like:
+
+
+- age_group
+
+- gender
+
+- water_intake_liters
+
+- hydration_level
+
+- meal_pattern
+
+- produce_frequency
+
+- snack_preference
+
+- sugary_drinks_per_week
+
+- activity_level
+
+
+
+
+Each field is constrained. For example, water intake cannot exceed the allowed range,
+and sugary drinks per week cannot be negative. This prevents invalid data from reaching
+the scoring logic.
+
+
+Plate planner model
+
+The plate planner uses:
+
+
+- PlateItem: one chosen food plus its category
+
+- PlateProfile: age group, gender, body weight, activity level, and goal
+
+- PlatePlanRequest: complete input payload
+
+- PlatePlanResponse: score, summary, target split, optimized plate, adjustments, and tips
+
+
+
+
+The main advantage of strong schemas is that the frontend and backend stay in sync.
+If you change a field in the backend, you immediately know what must change in the frontend.
+
+
+5. How the Current Recommendation Engine Works
+
+
+The recommendation engine is in backend/app/services/recommendations.py.
+It is not learning from data. Instead, it uses expert-designed rules. This is useful
+for an MVP because it is easy to understand, debug, and explain.
+
+
+Survey scoring logic
+
+The backend starts with a base score, then adjusts it up or down.
+
+
+- If water intake is high enough, score increases.
+
+- If meals are irregular, score decreases.
+
+- If produce intake is frequent, score increases.
+
+- If snack preference is packaged food, score decreases.
+
+- If sugary drinks are frequent, score decreases.
+
+- If activity level is higher, score increases.
+
+
+
+This is basically a weighted scoring function.
+
+
+
+score = 50
+score += hydration_adjustment
+score += meal_pattern_adjustment
+score += produce_adjustment
+score += snack_adjustment
+score += activity_adjustment
+score -= sugary_drink_penalty
+score = clamp(score, 0, 100)
+
+
+Recommendation construction
+
+
+After the score is computed, the backend builds structured content:
+
+
+
+- User summary bands such as hydration band and meal pattern band
+
+- Risk indicators such as hydration stability and sugar displacement
+
+- Guidance cards for hydration, plate design, smart swaps, and nutrient education
+
+
+
+
+The key design choice is that the backend returns structured data, not HTML. This means
+the frontend is free to display the recommendations as cards, lists, graphs, or something else
+later.
+
+
+6. How the Plate Planner Works
+
+User interaction
+
+
+- The user opens the Plate page.
+
+- The user picks one item for each category: base, protein, vegetable, side.
+
+- The user can search through the options in each category.
+
+- The user adds profile details such as age group and body weight.
+
+- The frontend sends the chosen items and profile to POST /plate/optimize.
+
+- The backend evaluates the plate and returns a corrected version.
+
+
+
+Backend plate logic
+
+
+The backend uses a category library named PLATE_LIBRARY. Each item is mapped to:
+
+
+
+- a valid replacement item
+
+- a quality tag such as smart, strong, refined, weak, or missing
+
+
+
+
+For example, white rice is treated as refined, so it can be replaced with
+brown rice. soft drink is weak, so it can be replaced with
+water. The important constraint is that replacements are only chosen from the same allowed
+options list used by the frontend.
+
+
+Why that constraint matters
+
+
+If the backend suggests foods that the user never saw in the picker, the experience feels
+inconsistent.
+By forcing replacements to come from the allowed option list:
+
+
+
+- the frontend and backend stay aligned
+
+- the user can understand the correction
+
+- future analytics stay cleaner because the food vocabulary is controlled
+
+
+
+
+
+7. Heavy ML Explanation: What Exists Now vs What a Real Model Would Be
+
+What exists now
+
+
+The current system is rule-based. In ML terms, you can think of it as a manually coded
+decision function. The rules are fixed by the developer. They do not improve automatically.
+
+
+What a real ML model would do
+
+
+A real ML system would learn patterns from historical data. Instead of manually writing
+every rule, you would collect examples of users, their inputs, and the desired outputs.
+Then you would train a model to predict recommendations, risk levels, or meal corrections.
+
+
+Possible ML tasks in this project
+
+
+
+
+ML task |
+Input |
+Output |
+Suggested model type |
+
+
+
+
+
+Risk classification |
+Survey features |
+Low / medium / high risk labels |
+Logistic regression, XGBoost, random forest |
+
+
+
+Nutrition score prediction |
+Survey and behavior features |
+Continuous score |
+Linear regression, gradient boosting regressor |
+
+
+
+Meal correction recommendation |
+Plate composition + profile |
+Best replacement or plate split |
+Ranking model, multiclass classifier, hybrid rule + ML system |
+
+
+
+User clustering |
+Habit vectors |
+User segments |
+K-means or hierarchical clustering |
+
+
+
+
+
+How the data would look
+
+You need a dataset with rows like this:
+
+
+
+age_group, gender, body_weight_kg, water_intake_liters, meal_pattern,
+produce_frequency, snack_preference, sugary_drinks_per_week,
+activity_level, selected_base, selected_protein, selected_vegetable,
+selected_side, goal, output_score, output_risk_level, corrected_base,
+corrected_side, recommended_actions
+
+
+
+Every row is one example. The left side contains features. The right side contains targets.
+Targets are the things the model should learn to predict.
+
+
+Feature engineering
+
+
+Machine learning models do not understand raw text values directly in most traditional
+pipelines.
+You usually convert them into numeric features.
+
+
+
+- One-hot encode categorical fields like meal_pattern and goal.
+
+- Use numeric fields directly for body weight, water intake, and sugary drink count.
+
+- Optionally derive extra features like hydration deficit, processed food count, or
+  vegetable absence flag.
+
+
+
+Example ML training pipeline
+
+
+
+1. Collect survey and plate data
+2. Clean invalid and missing rows
+3. Convert categories to numerical features
+4. Split into train / validation / test sets
+5. Train a baseline model
+6. Evaluate precision, recall, F1, or RMSE depending on task
+7. Save the fitted model
+8. Load that saved model inside the FastAPI app
+9. Use it during inference
+
+
+Why start with baseline models
+
+
+For a project like this, a simpler model such as logistic regression, random forest,
+or XGBoost is often better than jumping straight to a deep neural network.
+Reasons:
+
+
+
+- The dataset is likely tabular, not image or language data.
+
+- You need explainability for health-related recommendations.
+
+- You can inspect feature importance and justify why a decision was made.
+
+- Development is faster and easier to debug.
+
+
+
+Recommended ML architecture for this exact project
+
+A practical production version would be hybrid:
+
+
+- Use rules for safety constraints and hard nutritional boundaries.
+
+- Use ML for scoring, risk prediction, and ranking the best swaps.
+
+- Post-process model output through rules so the final recommendation is always safe and
+  valid.
+
+
+
+
+Best practice: do not let a pure model output unsupported foods or invalid meal plans.
+Let the model rank candidates, then filter the final answer through allowed option lists
+and safety checks.
+
+
+
+
+8. How Someone Would Code the ML Version
+
+Step 1: create a training dataset
+
+
+Save user survey and plate interactions to a database. Later export them to CSV or Parquet
+for training. At minimum you need:
+
+
+
+- user inputs
+
+- the recommendation shown
+
+- whether the user accepted the recommendation
+
+- optionally later outcomes, such as adherence or follow-up surveys
+
+
+
+Step 2: build a training script
+
+
+A simple training script can live in something like backend/ml/train_model.py.
+That script would:
+
+
+
+
+load data
+clean data
+encode features
+split train/test
+fit model
+evaluate metrics
+save model.pkl
+save feature_pipeline.pkl
+
+
+Step 3: load the model in FastAPI
+
+
+At app startup, load the serialized model and preprocessing pipeline. Then wrap inference in a
+service.
+
+
+
+
+from joblib import load
+
+model = load("model.joblib")
+encoder = load("encoder.joblib")
+
+def predict_recommendation(payload):
+features = encoder.transform([payload_to_dict(payload)])
+return model.predict(features)
+
+
+Step 4: keep the API contract stable
+
+
+The best part of the current code structure is that you do not need to redesign the frontend.
+The frontend already expects structured JSON. So you can:
+
+
+
+- keep the same request payload
+
+- replace the rule logic behind the endpoint
+
+- return the same response shape
+
+
+
+Step 5: add model fallback logic
+
+
+A safe production pattern is:
+
+
+
+
+if model is available and input is valid:
+run ML prediction
+post-process output through business rules
+else:
+use the current rule-based engine
+
+
+Step 6: evaluate the model correctly
+
+
+Do not only check training accuracy. Evaluate on unseen data. For health-oriented suggestions,
+you also want interpretability and consistency. Useful checks:
+
+
+
+- accuracy for discrete label tasks
+
+- precision and recall for high-risk predictions
+
+- confusion matrix to see where errors happen
+
+- feature importance to understand which variables are driving predictions
+
+- business review by a nutrition expert if possible
+
+
+
+9. How to Code the Current Project from Scratch
+
+Backend steps
+
+
+- Create a FastAPI app in main.py.
+
+- Define Pydantic models in models.py.
+
+- Create route handlers for health, content, survey assessment, recommendations, and plate
+  optimization.
+
+- Move business logic into a service file instead of putting everything inside route
+  functions.
+
+- Write tests using pytest and TestClient.
+
+
+
+Frontend steps
+
+
+- Create the React app with Vite.
+
+- Create one main stateful component, App.jsx.
+
+- Use hash-based navigation for page-like views.
+
+- Create separate components for quiz, survey, plate planner, research, and results.
+
+- Put fetch logic in a small API utility file.
+
+- Render backend responses as reusable UI cards.
+
+
+
+Why this structure is good
+
+
+- The frontend is modular.
+
+- The backend is modular.
+
+- Validation is centralized.
+
+- The app is easy to extend with ML later.
+
+- The test surface is small and understandable.
+
+
+
+10. Suggested Next Steps
+
+
+- Add a database to store user inputs and plate interactions.
+
+- Log accepted vs rejected recommendations.
+
+- Create a training dataset from real usage data.
+
+- Train a first baseline model for score or risk prediction.
+
+- Integrate the model behind the same FastAPI endpoints.
+
+- Add explainability data to the response, such as top factors behind the prediction.
+
+- Keep safety and valid food constraints rule-based even after ML is added.
+
+
+
+11. Final Summary
+
+
+This project already has a strong base for a future ML system because the frontend and backend
+are separated cleanly, the schemas are explicit, and the response format is structured.
+Right now the intelligence is rule-based. To turn it into a true ML application, the main
+missing pieces are historical data, a training pipeline, a saved model artifact, and an
+inference
+layer that plugs into the existing API.
+
+
+
+Generated for the codebase in /Users/harshshukla/Documents/New project.
+
+
+
+
