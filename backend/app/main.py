@@ -38,16 +38,19 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
 @app.get("/content/sections", response_model=ContentResponse)
+@app.get("/api/content/sections", response_model=ContentResponse)
 def content_sections() -> ContentResponse:
     return ContentResponse(sections=CONTENT_SECTIONS)
 
 
 @app.post("/assessment", response_model=AssessmentResponse)
+@app.post("/api/assessment", response_model=AssessmentResponse)
 def assessment(payload: AssessmentPayload) -> AssessmentResponse:
     normalized = normalize_payload(payload)
     return AssessmentResponse(
@@ -58,11 +61,13 @@ def assessment(payload: AssessmentPayload) -> AssessmentResponse:
 
 
 @app.post("/recommendations", response_model=RecommendationResponse)
+@app.post("/api/recommendations", response_model=RecommendationResponse)
 def recommendations(payload: AssessmentPayload) -> RecommendationResponse:
     return build_recommendations(payload)
 
 
 @app.post("/plate/optimize", response_model=PlatePlanResponse)
+@app.post("/api/plate/optimize", response_model=PlatePlanResponse)
 def plate_optimize(payload: PlatePlanRequest) -> PlatePlanResponse:
     return optimize_plate(payload)
 
