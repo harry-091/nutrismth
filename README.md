@@ -49,33 +49,47 @@ cd backend
 
 ## Deployment
 
-This repo is now set up to deploy as a single service:
+Recommended deployment:
 
-- the frontend is built inside Docker
-- the built frontend files are copied into the backend
-- FastAPI serves the frontend from `backend/app/static`
+- Frontend on Netlify
+- Backend on Render
 
-Files added for deployment:
+This is simpler and more reliable than serving the React build from FastAPI in one container.
 
-- `Dockerfile`
-- `render.yaml`
-- `.dockerignore`
+### Backend on Render
 
-### Render
+The repo includes `render.yaml` configured for the backend service only.
 
 1. Push this repo to GitHub.
 2. Create a new Render Blueprint or Web Service from the repo.
-3. Render will detect `render.yaml` or the `Dockerfile`.
-4. Deploy.
+3. Render will use:
+   - `rootDir: backend`
+   - `pip install -r requirements.txt`
+   - `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+4. After deploy, note your backend URL, for example:
+   - `https://your-backend.onrender.com`
 
-### Docker
+### Frontend on Netlify
+
+The repo includes `netlify.toml`.
+
+1. Create a new Netlify site from the same repo.
+2. Netlify will use:
+   - base directory: `frontend`
+   - build command: `npm run build`
+   - publish directory: `frontend/dist`
+3. Add this environment variable in Netlify:
 
 ```bash
-docker build -t nutriquest .
-docker run -p 8000:8000 nutriquest
+VITE_API_BASE=https://your-backend.onrender.com/api
 ```
 
-Then open `http://127.0.0.1:8000`.
+4. Redeploy the Netlify site.
+
+### Important
+
+The frontend expects the backend API base to include `/api` in production.
+The backend supports both `/...` and `/api/...` routes.
 
 ## Documentation
 
