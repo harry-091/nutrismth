@@ -44,8 +44,7 @@ export default function App() {
   const [form, setForm] = useState(initialForm);
   const [surveyStep, setSurveyStep] = useState(0);
   const [quizStep, setQuizStep] = useState(0);
-  const [quizScore, setQuizScore] = useState(0);
-  const [selectedQuizAnswer, setSelectedQuizAnswer] = useState("");
+  const [quizAnswers, setQuizAnswers] = useState([]);
   const [recommendations, setRecommendations] = useState(null);
   const [plateForm, setPlateForm] = useState(initialPlateForm);
   const [plateResult, setPlateResult] = useState(null);
@@ -118,32 +117,25 @@ export default function App() {
   ];
 
   function handleQuizAnswer(answer) {
-    if (selectedQuizAnswer) {
-      return;
-    }
-    setSelectedQuizAnswer(answer);
-    const correctAnswers = [
-      "A bottle of water with breakfast",
-      "Roti, dal, sabzi, and some curd",
-      "Fruit with peanuts or seeds",
-      "Try brown rice or millet once or twice",
-      "Add a half-plate of vegetables or salad",
-      "Check water intake and eat a balanced snack",
-      "Consistent meals and hydration",
-    ];
-    if (answer === correctAnswers[quizStep]) {
-      setQuizScore((current) => current + 1);
-    }
+    setQuizAnswers((current) => {
+      const next = [...current];
+      next[quizStep] = answer;
+      return next;
+    });
   }
 
   function handleNextQuiz() {
-    if (quizStep < 6) {
+    if (quizStep < 9) {
       setQuizStep((current) => current + 1);
-      setSelectedQuizAnswer("");
       return;
     }
+    navigate("survey");
+  }
 
-    setSelectedQuizAnswer("");
+  function handleRetakeSurvey() {
+    setForm(initialForm);
+    setSurveyStep(0);
+    setRecommendations(null);
     navigate("survey");
   }
 
@@ -241,10 +233,10 @@ export default function App() {
           <div className="page-view">
             <PokeballQuizSection
               currentQuestion={quizStep}
-              selectedAnswer={selectedQuizAnswer}
+              selectedAnswer={quizAnswers[quizStep] ?? ""}
               onAnswer={handleQuizAnswer}
               onNext={handleNextQuiz}
-              score={quizScore}
+              answerCount={quizAnswers.filter(Boolean).length}
               onNavigate={navigate}
             />
           </div>
@@ -291,7 +283,11 @@ export default function App() {
 
         {page === "results" ? (
           <div className="page-view">
-            <ResultsSection data={recommendations} onNavigate={navigate} />
+            <ResultsSection
+              data={recommendations}
+              onNavigate={navigate}
+              onRetakeSurvey={handleRetakeSurvey}
+            />
           </div>
         ) : null}
       </main>

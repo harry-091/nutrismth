@@ -14,7 +14,7 @@ function GuidanceBlock({ card }) {
   );
 }
 
-export default function ResultsSection({ data, onNavigate }) {
+export default function ResultsSection({ data, onNavigate, onRetakeSurvey }) {
   if (!data) {
     return (
       <section className="results-placeholder">
@@ -75,7 +75,7 @@ export default function ResultsSection({ data, onNavigate }) {
       </div>
 
       <div className="results-actions">
-        <button type="button" className="button button-secondary" onClick={() => onNavigate("survey")}>
+        <button type="button" className="button button-secondary" onClick={onRetakeSurvey}>
           Retake survey
         </button>
         <button type="button" className="button button-primary" onClick={() => onNavigate("home")}>

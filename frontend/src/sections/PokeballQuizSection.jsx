@@ -2,92 +2,114 @@ import SectionHeading from "../components/SectionHeading";
 
 const QUIZ_QUESTIONS = [
   {
-    prompt: "You need a quick morning drink choice before class. Which Pokeball do you open?",
-    correct: "A bottle of water with breakfast",
-    wrong: "A fizzy sugary drink on an empty stomach",
+    prompt: "On average, how many meals do you eat per day?",
+    options: ["1", "2", "3", "3+"],
   },
   {
-    prompt: "Lunch is rushed. Which option helps build a better plate?",
-    correct: "Roti, dal, sabzi, and some curd",
-    wrong: "Only instant noodles and chips",
+    prompt: "Let's start with breakfast or nashta. What does your morning meal usually look like?",
+    options: [
+      "Heavy — aloo paratha with butter, or chole bhature.",
+      "Quick — poha, upma, chillas, or muesli.",
+      "South Indian — idli, dosa, or vada with sambar.",
+      "Just chai with biscuits or toast, or I skip it.",
+    ],
   },
   {
-    prompt: "It is snack time during study hours. What is the smarter pick?",
-    correct: "Fruit with peanuts or seeds",
-    wrong: "A second packet of fried snacks",
+    prompt: "Lunchtime. What's usually in your lunchbox or on your plate if you're home?",
+    options: [
+      "Classic — roti, sabzi, dal, and curd.",
+      "Rice with sambar or rasam and curry.",
+      "Leftovers from last night.",
+      "Canteen or takeout — biryani, roll, or thali.",
+    ],
   },
   {
-    prompt: "You want a better rice swap for a few meals this week. Which works?",
-    correct: "Try brown rice or millet once or twice",
-    wrong: "Skip lunch entirely",
+    prompt: "What's a typical dinner meal for you?",
+    options: [
+      "Light — khichdi with curd, or simple dal-rice.",
+      "Same as lunch — roti or rice with sabzi and dal.",
+      "One-pot — pulao, biryani, or pasta.",
+      "Takeout — parathas, Mughlai, or Chinese.",
+    ],
   },
   {
-    prompt: "You have not had many vegetables today. What helps most at dinner?",
-    correct: "Add a half-plate of vegetables or salad",
-    wrong: "Double the dessert instead",
+    prompt: "What does your daily caffeine and hydration look like?",
+    options: [
+      "2–3 cups of chai or filter coffee, plus water.",
+      "Coffee all day. Water could be better.",
+      "Cutting down on chai — mostly water or nimbu pani.",
+      "A lot of sodas, packaged juices, or sweet lassi.",
+    ],
   },
   {
-    prompt: "You feel tired in the afternoon. Which habit is more helpful first?",
-    correct: "Check water intake and eat a balanced snack",
-    wrong: "Drink more sugary soda immediately",
+    prompt: "What's your main source of carbohydrate on a typical day?",
+    options: [
+      "Rice — every day.",
+      "Roti or paratha — fresh.",
+      "Oats, quinoa, or millets.",
+      "Whatever comes with the meal.",
+    ],
   },
   {
-    prompt: "Which daily habit supports better nutrition over time?",
-    correct: "Consistent meals and hydration",
-    wrong: "Random meals and frequent skipped breakfasts",
+    prompt: "What's your main source of protein on a typical day?",
+    options: [
+      "Dal — almost daily.",
+      "Chicken or fish — a few times a week.",
+      "Paneer, soya, or legumes.",
+      "Eggs — regularly.",
+      "Not sure — whatever's in the meal.",
+    ],
+  },
+  {
+    prompt: "What's your relationship with sweets?",
+    options: [
+      "Love them — jalebi, gulab jamun, mithai after meals.",
+      "Sweet tooth, but mostly save it for festivals.",
+      "A piece of chocolate or ice cream does it.",
+      "Not into mithai — I prefer salty snacks.",
+    ],
+  },
+  {
+    prompt: "How often do you work out or exercise?",
+    options: [
+      "Rarely — maybe a walk.",
+      "1–2 times a week.",
+      "3–4 times a week — consistent.",
+      "Almost every day — non-negotiable.",
+    ],
+  },
+  {
+    prompt: "What's your typical sleep schedule like?",
+    options: [
+      "Disciplined — asleep by 10:30–11 PM, up by 6:30–7 AM.",
+      "Midnight to 8 AM — fairly consistent.",
+      "Varies — some days early, some nights up till 2–3 AM.",
+      "Night owl — after 2 AM, struggle to wake up early.",
+    ],
   },
 ];
-
-function PokeballOption({ label, variant, onClick, state, disabled }) {
-  return (
-    <button
-      type="button"
-      className={`pokeball-option ${variant} ${state}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      <span className="pokeball-top" />
-      <span className="pokeball-center" />
-      <span className="pokeball-label">{label}</span>
-    </button>
-  );
-}
 
 export default function PokeballQuizSection({
   currentQuestion,
   selectedAnswer,
   onAnswer,
   onNext,
-  score,
+  answerCount,
   onNavigate,
 }) {
   const question = QUIZ_QUESTIONS[currentQuestion];
-  const answered = Boolean(selectedAnswer);
-
-  function getState(option) {
-    if (!selectedAnswer) {
-      return "";
-    }
-    if (option === question.correct) {
-      return "correct";
-    }
-    if (option === selectedAnswer) {
-      return "wrong";
-    }
-    return "muted";
-  }
 
   return (
     <section className="quiz-section">
       <div className="quiz-copy">
         <SectionHeading
-          eyebrow="Quiz"
-          title="Choose the Pokeball with the healthier habit."
-          body="Pick the better option in each round, then continue to the full survey."
+          eyebrow="Questionnaire"
+          title="Answer a few quick questions about your day-to-day routine."
+          body="This section helps set context before the full survey and recommendation flow."
         />
         <div className="quiz-score">
-          <span>Question {currentQuestion + 1} / 7</span>
-          <strong>{score} healthy picks</strong>
+          <span>Question {currentQuestion + 1} / {QUIZ_QUESTIONS.length}</span>
+          <strong>{answerCount} answered</strong>
         </div>
         <div className="quiz-mini-nav">
           <button type="button" className="button button-secondary" onClick={() => onNavigate("home")}>
@@ -103,39 +125,30 @@ export default function PokeballQuizSection({
         <div className="quiz-arena-glow" />
         <p className="quiz-prompt">{question.prompt}</p>
 
-        <div className="pokeball-grid">
-          <PokeballOption
-            label={question.correct}
-            variant="pokeball-red"
-            state={getState(question.correct)}
-            disabled={answered}
-            onClick={() => onAnswer(question.correct)}
-          />
-          <PokeballOption
-            label={question.wrong}
-            variant="pokeball-blue"
-            state={getState(question.wrong)}
-            disabled={answered}
-            onClick={() => onAnswer(question.wrong)}
-          />
+        <div className="quiz-option-list">
+          {question.options.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={selectedAnswer === option ? "quiz-option-card active" : "quiz-option-card"}
+              onClick={() => onAnswer(option)}
+            >
+              {option}
+            </button>
+          ))}
         </div>
 
-        {selectedAnswer ? (
-          <div className="quiz-feedback">
-            <p>
-              {selectedAnswer === question.correct
-                ? "Correct."
-                : `The better pick here is: ${question.correct}.`}
-            </p>
-            <button type="button" className="button button-primary" onClick={onNext}>
-              {currentQuestion === QUIZ_QUESTIONS.length - 1
-                ? "Open the survey page"
-                : "Next question"}
-            </button>
-          </div>
-        ) : (
-          <p className="quiz-hint">Tap one Pokeball to lock in your answer.</p>
-        )}
+        <div className="quiz-feedback">
+          <p>{selectedAnswer ? "Answer saved." : "Choose one option to continue."}</p>
+          <button
+            type="button"
+            className="button button-primary"
+            onClick={onNext}
+            disabled={!selectedAnswer}
+          >
+            {currentQuestion === QUIZ_QUESTIONS.length - 1 ? "Open the survey page" : "Next question"}
+          </button>
+        </div>
       </div>
     </section>
   );
