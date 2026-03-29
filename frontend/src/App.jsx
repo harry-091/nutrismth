@@ -6,6 +6,7 @@ import PillarsSection from "./sections/PillarsSection";
 import AssessmentSection from "./sections/AssessmentSection";
 import ResultsSection from "./sections/ResultsSection";
 import PlatePlannerSection from "./sections/PlatePlannerSection";
+import ModelInsightsSection from "./sections/ModelInsightsSection";
 import { fetchRecommendations, fetchSections, optimizePlate, submitAssessment } from "./lib/api";
 
 const initialForm = {
@@ -36,7 +37,7 @@ const initialPlateForm = {
   },
 };
 
-const PAGES = ["home", "quiz", "research", "survey", "plate", "results"];
+const PAGES = ["home", "quiz", "research", "model", "survey", "plate", "results"];
 
 export default function App() {
   const [page, setPage] = useState(window.location.hash.replace("#", "") || "home");
@@ -111,6 +112,7 @@ export default function App() {
     ["home", "Home"],
     ["quiz", "Game"],
     ["research", "Research"],
+    ["model", "Model"],
     ["survey", "Survey"],
     ["plate", "Plate"],
     ["results", "Results"],
@@ -246,6 +248,12 @@ export default function App() {
           <div className="page-view">
             {pageError ? <p className="page-error">{pageError}</p> : null}
             {!loadingSections && sections.length ? <ResearchSection sections={sections} /> : null}
+          </div>
+        ) : null}
+
+        {page === "model" ? (
+          <div className="page-view">
+            <ModelInsightsSection />
           </div>
         ) : null}
 

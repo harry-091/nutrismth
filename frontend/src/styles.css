@@ -685,6 +685,30 @@ main {
   gap: 1.5rem;
 }
 
+.model-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.model-card,
+.model-wide-card {
+  border: 1px solid var(--line);
+  border-radius: calc(var(--radius-lg) + 2px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 249, 244, 0.94));
+  box-shadow: var(--shadow);
+  padding: 1.4rem;
+}
+
+.model-guidance-grid {
+  margin-top: 0;
+}
+
 .plate-builder-card,
 .plate-profile-card,
 .plate-results-card,
@@ -901,6 +925,7 @@ main {
   .results-summary,
   .risk-grid,
   .guidance-grid,
+  .model-grid,
   .plate-config-grid,
   .optimized-plate-grid,
   .plate-profile-form {
