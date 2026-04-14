@@ -11,6 +11,7 @@ from ..models import (
     RiskIndicator,
     UserSummary,
 )
+from .ml_model import model_is_available, predict_assessment
 
 
 PLATE_LIBRARY = {
@@ -72,7 +73,7 @@ def normalize_payload(payload: AssessmentPayload) -> AssessmentPayload:
     return payload
 
 
-def compute_score(payload: AssessmentPayload) -> int:
+def compute_rule_score(payload: AssessmentPayload) -> int:
     score = 55
 
     score += {"lt_1": -14, "1-2": -6, "2-3": 6, "gt_3": 10}[payload.water_intake]
@@ -90,7 +91,7 @@ def compute_score(payload: AssessmentPayload) -> int:
     return max(0, min(100, score))
 
 
-def derive_suggested_plate(payload: AssessmentPayload) -> list[PlateItem]:
+def derive_rule_suggested_plate(payload: AssessmentPayload) -> list[PlateItem]:
     base = {
         "rice": "white rice",
         "wheat": "roti",
@@ -131,28 +132,55 @@ def derive_suggested_plate(payload: AssessmentPayload) -> list[PlateItem]:
     ]
 
 
-def build_recommendations(payload: AssessmentPayload) -> RecommendationResponse:
-    normalized = normalize_payload(payload)
-    score = compute_score(normalized)
-    suggested_plate = derive_suggested_plate(normalized)
-
+def derive_rule_bands(payload: AssessmentPayload) -> tuple[str, str, str]:
     hydration_band = {
         "lt_1": "Low hydration",
         "1-2": "Needs improvement",
         "2-3": "Steady intake",
         "gt_3": "High intake",
-    }[normalized.water_intake]
+    }[payload.water_intake]
     meal_band = {
         "1-2": "Low meal frequency",
         "3": "Steady meal rhythm",
         "4+": "Frequent eating pattern",
-    }[normalized.meals_per_day]
+    }[payload.meals_per_day]
     variety_band = {
         "daily": "High variety",
         "4-6_week": "Good variety",
         "1-3_week": "Moderate variety",
         "rarely": "Low variety",
-    }[normalized.fruit_veg_frequency]
+    }[payload.fruit_veg_frequency]
+    return hydration_band, meal_band, variety_band
+
+
+def compute_score(payload: AssessmentPayload) -> int:
+    prediction = predict_assessment(payload)
+    if prediction:
+        return prediction.score
+    return compute_rule_score(payload)
+
+
+def derive_suggested_plate(payload: AssessmentPayload) -> list[PlateItem]:
+    prediction = predict_assessment(payload)
+    if prediction:
+        return prediction.suggested_plate
+    return derive_rule_suggested_plate(payload)
+
+
+def build_recommendations(payload: AssessmentPayload) -> RecommendationResponse:
+    normalized = normalize_payload(payload)
+    prediction = predict_assessment(normalized)
+    score = prediction.score if prediction else compute_rule_score(normalized)
+    suggested_plate = prediction.suggested_plate if prediction else derive_rule_suggested_plate(normalized)
+    hydration_band, meal_band, variety_band = (
+        (
+            prediction.hydration_band,
+            prediction.meal_rhythm_band,
+            prediction.nutrition_variety_band,
+        )
+        if prediction
+        else derive_rule_bands(normalized)
+    )
 
     risk_indicators = [
         RiskIndicator(
@@ -203,8 +231,16 @@ def build_recommendations(payload: AssessmentPayload) -> RecommendationResponse:
             nutrition_variety_band=variety_band,
         ),
         score=score,
-        source="Rule-based nutrition analysis built from the updated survey questionnaire",
-        confidence_note="This version uses a structured nutrition scoring model. The next step could be replacing these weighted rules with a trained ML model using real survey data.",
+        source=(
+            "Trained decision-tree nutrition model served from local model artifacts"
+            if model_is_available()
+            else "Rule-based nutrition analysis built from the updated survey questionnaire"
+        ),
+        confidence_note=(
+            "The live app is using a trained machine learning model built on a bootstrap nutrition dataset generated from the project logic. It is a real trained model, but not yet trained on real user outcome data."
+            if model_is_available()
+            else "This version uses a structured nutrition scoring model. The next step could be replacing these weighted rules with a trained ML model using real survey data."
+        ),
         risk_indicators=risk_indicators,
         suggested_plate=suggested_plate,
         hydration_recommendation=GuidanceCard(

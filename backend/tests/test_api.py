@@ -21,6 +21,16 @@ def test_content_sections_endpoint():
     assert body["sections"][0]["slug"] == "problem"
 
 
+def test_model_metrics_endpoint():
+    response = client.get("/api/model/metrics")
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["model_name"]
+    assert body["sample_count"] >= 1000
+    assert body["score_r2"] > 0.9
+
+
 def test_recommendations_happy_path():
     payload = {
         "age_group": "19-25",

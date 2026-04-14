@@ -20,6 +20,10 @@ export function fetchSections() {
   return request("/content/sections");
 }
 
+export function fetchModelMetrics() {
+  return request("/model/metrics");
+}
+
 export function submitAssessment(payload) {
   return request("/assessment", {
     method: "POST",

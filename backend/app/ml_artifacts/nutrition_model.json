@@ -1,0 +1,16 @@
+{
+  "model_name": "Linear-score plus decision-tree nutrition model",
+  "training_source": "Synthetic bootstrap dataset generated from project nutrition rules",
+  "sample_count": 12000,
+  "score_mae": 0.0399,
+  "score_r2": 0.9998,
+  "hydration_accuracy": 1.0,
+  "meal_rhythm_accuracy": 1.0,
+  "variety_accuracy": 1.0,
+  "plate_accuracy": {
+    "base": 1.0,
+    "protein": 1.0,
+    "vegetable": 1.0,
+    "side": 1.0
+  }
+}

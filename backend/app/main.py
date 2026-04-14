@@ -10,6 +10,7 @@ from .models import (
     AssessmentPayload,
     AssessmentResponse,
     ContentResponse,
+    ModelMetricsResponse,
     PlatePlanRequest,
     PlatePlanResponse,
     RecommendationResponse,
@@ -20,6 +21,7 @@ from .services.recommendations import (
     normalize_payload,
     optimize_plate,
 )
+from .services.ml_model import get_model_metrics
 
 app = FastAPI(
     title="Nutrition ML API",
@@ -47,6 +49,12 @@ def health() -> dict[str, str]:
 @app.get("/api/content/sections", response_model=ContentResponse)
 def content_sections() -> ContentResponse:
     return ContentResponse(sections=CONTENT_SECTIONS)
+
+
+@app.get("/model/metrics", response_model=ModelMetricsResponse | None)
+@app.get("/api/model/metrics", response_model=ModelMetricsResponse | None)
+def model_metrics() -> ModelMetricsResponse | None:
+    return get_model_metrics()
 
 
 @app.post("/assessment", response_model=AssessmentResponse)

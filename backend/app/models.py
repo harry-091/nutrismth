@@ -82,6 +82,18 @@ class ContentResponse(BaseModel):
     sections: list[ContentSection]
 
 
+class ModelMetricsResponse(BaseModel):
+    model_name: str
+    training_source: str
+    sample_count: int
+    score_mae: float
+    score_r2: float
+    hydration_accuracy: float
+    meal_rhythm_accuracy: float
+    variety_accuracy: float
+    plate_accuracy: dict[str, float]
+
+
 PlateCategory = Literal["base", "protein", "vegetable", "side"]
 
 
