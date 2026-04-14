@@ -14,7 +14,7 @@ function GuidanceBlock({ card }) {
   );
 }
 
-export default function ResultsSection({ data, onNavigate, onRetakeSurvey }) {
+export default function ResultsSection({ data, onNavigate, onRetakeSurvey, onOpenPlate }) {
   if (!data) {
     return (
       <section className="results-placeholder">
@@ -48,12 +48,29 @@ export default function ResultsSection({ data, onNavigate, onRetakeSurvey }) {
           <strong>{data.user_summary.hydration_band}</strong>
         </div>
         <div>
-          <span>Meal pattern</span>
-          <strong>{data.user_summary.meal_pattern_band}</strong>
+          <span>Meal rhythm</span>
+          <strong>{data.user_summary.meal_rhythm_band}</strong>
         </div>
         <div>
           <span>Variety level</span>
           <strong>{data.user_summary.nutrition_variety_band}</strong>
+        </div>
+      </div>
+
+      <div className="plate-results-card">
+        <SectionHeading
+          eyebrow="Generated plate"
+          title="Your survey answers have been turned into a starting plate."
+          body="This plate mirrors the pattern in your answers. Open the next step to fix it using the same allowed food options with detailed explanations."
+        />
+
+        <div className="optimized-plate-grid">
+          {data.suggested_plate.map((item) => (
+            <article key={`${item.category}-${item.name}`} className="optimized-plate-item">
+              <span>{item.category}</span>
+              <strong>{item.name}</strong>
+            </article>
+          ))}
         </div>
       </div>
 
@@ -75,6 +92,9 @@ export default function ResultsSection({ data, onNavigate, onRetakeSurvey }) {
       </div>
 
       <div className="results-actions">
+        <button type="button" className="button button-primary" onClick={onOpenPlate}>
+          Fix this plate
+        </button>
         <button type="button" className="button button-secondary" onClick={onRetakeSurvey}>
           Retake survey
         </button>

@@ -115,8 +115,8 @@ export default function PlatePlannerSection({
       <div className="plate-builder-card">
         <SectionHeading
           eyebrow="Plate planner"
-          title="Build a meal plate and let the app rebalance it."
-          body="Choose what goes on the plate, add your body details, and get a corrected version with swaps and portion guidance."
+          title="Review the generated plate and let the app rebalance it."
+          body="The survey has already built a starting plate for you. You can still tweak any food choice here before asking for a corrected version with detailed swaps and portion guidance."
         />
 
         <div className="plate-visual">
@@ -145,18 +145,17 @@ export default function PlatePlannerSection({
       <div className="plate-profile-card">
         <SectionHeading
           eyebrow="Your details"
-          title="Add the basics so the plate can be adjusted for you."
+          title="Check the details used to fix the plate."
         />
 
         <form className="plate-profile-form" onSubmit={onSubmit}>
           <label className="form-field">
             <span>Age group</span>
             <select name="age_group" value={plateForm.profile.age_group} onChange={onProfileChange}>
-              <option value="13-17">13-17</option>
-              <option value="18-25">18-25</option>
-              <option value="26-40">26-40</option>
-              <option value="41-60">41-60</option>
-              <option value="60+">60+</option>
+              <option value="15-18">15-18</option>
+              <option value="19-25">19-25</option>
+              <option value="26-35">26-35</option>
+              <option value="35+">35+</option>
             </select>
           </label>
 
@@ -165,8 +164,6 @@ export default function PlatePlannerSection({
             <select name="gender" value={plateForm.profile.gender} onChange={onProfileChange}>
               <option value="female">female</option>
               <option value="male">male</option>
-              <option value="non-binary">non-binary</option>
-              <option value="prefer_not_to_say">prefer not to say</option>
             </select>
           </label>
 

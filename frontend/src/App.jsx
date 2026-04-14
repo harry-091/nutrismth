@@ -11,14 +11,20 @@ import { fetchRecommendations, fetchSections, optimizePlate, submitAssessment } 
 import { QUESTIONNAIRE_TOTAL } from "./lib/questionnaire";
 
 const initialForm = {
-  age_group: "18-25",
+  age_group: "19-25",
   gender: "female",
-  water_intake_liters: 1.8,
-  hydration_level: "medium",
-  meal_pattern: "mixed",
-  produce_frequency: "sometimes",
-  snack_preference: "mixed",
-  sugary_drinks_per_week: 3,
+  diet_type: "vegetarian",
+  meals_per_day: "3",
+  fruit_veg_frequency: "daily",
+  diet_trend: "none",
+  water_intake: "2-3",
+  carb_source: "rice",
+  protein_source: "pulses",
+  fat_source: "oils",
+  post_carb_feeling: "normal",
+  breakfast_type: "quick",
+  dinner_type: "balanced",
+  goal_victory: "more_energy",
   activity_level: "moderate",
 };
 
@@ -30,7 +36,7 @@ const initialPlateForm = {
     side: "fruit",
   },
   profile: {
-    age_group: "18-25",
+    age_group: "19-25",
     gender: "female",
     body_weight_kg: 60,
     activity_level: "moderate",
@@ -97,12 +103,7 @@ export default function App() {
 
   function handleChange(event) {
     const { name, value } = event.target;
-    const numericFields = new Set(["water_intake_liters", "sugary_drinks_per_week"]);
-
-    setForm((current) => ({
-      ...current,
-      [name]: numericFields.has(name) ? Number(value) : value,
-    }));
+    setForm((current) => ({ ...current, [name]: value }));
   }
 
   function navigate(nextPage) {
@@ -144,6 +145,8 @@ export default function App() {
     setForm(initialForm);
     setSurveyStep(0);
     setRecommendations(null);
+    setPlateForm(initialPlateForm);
+    setPlateResult(null);
     navigate("survey");
   }
 
@@ -158,6 +161,30 @@ export default function App() {
       startTransition(() => {
         setRecommendations(data);
       });
+      setPlateResult(null);
+      setPlateForm((current) => ({
+        items: data.suggested_plate.reduce(
+          (accumulator, item) => ({
+            ...accumulator,
+            [item.category]: item.name.toLowerCase(),
+          }),
+          current.items,
+        ),
+        profile: {
+          ...current.profile,
+          age_group: form.age_group,
+          gender: form.gender,
+          activity_level: form.activity_level,
+          goal:
+            form.goal_victory === "feeling_stronger"
+              ? "higher_protein"
+              : form.goal_victory === "better_sleep"
+                ? "lighter_meal"
+                : form.goal_victory === "no_afternoon_slump"
+                  ? "energy_support"
+                  : "balanced",
+        },
+      }));
       navigate("results");
     } catch {
       setFormError("We could not generate recommendations. Please review the inputs and try again.");
@@ -302,6 +329,7 @@ export default function App() {
               data={recommendations}
               onNavigate={navigate}
               onRetakeSurvey={handleRetakeSurvey}
+              onOpenPlate={() => navigate("plate")}
             />
           </div>
         ) : null}

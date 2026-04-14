@@ -23,14 +23,20 @@ def test_content_sections_endpoint():
 
 def test_recommendations_happy_path():
     payload = {
-        "age_group": "18-25",
+        "age_group": "19-25",
         "gender": "female",
-        "water_intake_liters": 1.2,
-        "hydration_level": "low",
-        "meal_pattern": "irregular",
-        "produce_frequency": "sometimes",
-        "snack_preference": "packaged",
-        "sugary_drinks_per_week": 6,
+        "diet_type": "vegetarian",
+        "meals_per_day": "3",
+        "fruit_veg_frequency": "daily",
+        "diet_trend": "none",
+        "water_intake": "lt_1",
+        "carb_source": "processed",
+        "protein_source": "pulses",
+        "fat_source": "fried_foods",
+        "post_carb_feeling": "sleepy_heavy",
+        "breakfast_type": "tea_biscuits",
+        "dinner_type": "takeout",
+        "goal_victory": "no_afternoon_slump",
         "activity_level": "moderate",
     }
 
@@ -38,21 +44,28 @@ def test_recommendations_happy_path():
     body = response.json()
 
     assert response.status_code == 200
-    assert body["user_summary"]["hydration_band"] == "Needs immediate support"
+    assert body["user_summary"]["hydration_band"] == "Low hydration"
     assert body["hydration_recommendation"]["actions"]
-    assert body["smart_swaps"]["actions"][0].startswith("Replace one refined-carb meal")
+    assert len(body["suggested_plate"]) == 4
+    assert any(item["category"] == "protein" for item in body["suggested_plate"])
 
 
-def test_assessment_validation_rejects_out_of_range_values():
+def test_assessment_validation_rejects_invalid_choices():
     payload = {
-        "age_group": "18-25",
+        "age_group": "19-25",
         "gender": "male",
-        "water_intake_liters": 10,
-        "hydration_level": "medium",
-        "meal_pattern": "balanced",
-        "produce_frequency": "daily",
-        "snack_preference": "whole_food",
-        "sugary_drinks_per_week": 1,
+        "diet_type": "vegetarian",
+        "meals_per_day": "5",
+        "fruit_veg_frequency": "daily",
+        "diet_trend": "none",
+        "water_intake": "2-3",
+        "carb_source": "rice",
+        "protein_source": "pulses",
+        "fat_source": "oils",
+        "post_carb_feeling": "normal",
+        "breakfast_type": "quick",
+        "dinner_type": "balanced",
+        "goal_victory": "more_energy",
         "activity_level": "high",
     }
 
@@ -70,7 +83,7 @@ def test_plate_optimizer_returns_adjusted_plate():
             {"category": "side", "name": "soft drink"},
         ],
         "profile": {
-            "age_group": "18-25",
+            "age_group": "19-25",
             "gender": "male",
             "body_weight_kg": 72,
             "activity_level": "moderate",
