@@ -2,6 +2,17 @@
   "model_name": "Linear-score plus decision-tree nutrition model",
   "training_source": "Synthetic bootstrap dataset generated from project nutrition rules",
   "sample_count": 12000,
+  "training_log": [
+    "Starting training run with bootstrap nutrition dataset generation.",
+    "Sampling 12000 survey records across all questionnaire feature combinations using seed 42.",
+    "Encoding categorical survey answers with DictVectorizer.",
+    "Splitting dataset into training and test partitions with an 80/20 split.",
+    "Training LinearRegression for nutrition score prediction.",
+    "Training DecisionTreeClassifier models for hydration, meal rhythm, and nutrition variety bands.",
+    "Training DecisionTreeClassifier models for base, protein, vegetable, and side plate generation.",
+    "Evaluating regression with MAE and R2, and classification tasks with accuracy.",
+    "Saving the fitted model bundle and metrics JSON into backend/app/ml_artifacts."
+  ],
   "score_mae": 0.0399,
   "score_r2": 0.9998,
   "hydration_accuracy": 1.0,

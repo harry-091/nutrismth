@@ -91,6 +91,18 @@ def build_dataset(sample_count: int = SAMPLE_COUNT, seed: int = SEED):
 
 
 def train_and_save():
+    training_log = [
+        "Starting training run with bootstrap nutrition dataset generation.",
+        f"Sampling {SAMPLE_COUNT} survey records across all questionnaire feature combinations using seed {SEED}.",
+        "Encoding categorical survey answers with DictVectorizer.",
+        "Splitting dataset into training and test partitions with an 80/20 split.",
+        "Training LinearRegression for nutrition score prediction.",
+        "Training DecisionTreeClassifier models for hydration, meal rhythm, and nutrition variety bands.",
+        "Training DecisionTreeClassifier models for base, protein, vegetable, and side plate generation.",
+        "Evaluating regression with MAE and R2, and classification tasks with accuracy.",
+        "Saving the fitted model bundle and metrics JSON into backend/app/ml_artifacts.",
+    ]
+
     rows, labels = build_dataset()
     vectorizer = DictVectorizer(sparse=True)
     features = vectorizer.fit_transform(rows)
@@ -133,6 +145,7 @@ def train_and_save():
         "model_name": "Linear-score plus decision-tree nutrition model",
         "training_source": "Synthetic bootstrap dataset generated from project nutrition rules",
         "sample_count": len(rows),
+        "training_log": training_log,
         "score_mae": round(mean_absolute_error([labels["score"][index] for index in test_indices], score_predictions), 4),
         "score_r2": round(r2_score([labels["score"][index] for index in test_indices], score_predictions), 4),
         "hydration_accuracy": round(band_metrics["hydration_band"], 4),

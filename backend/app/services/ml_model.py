@@ -94,6 +94,7 @@ def get_model_metrics() -> ModelMetricsResponse | None:
         model_name=metadata["model_name"],
         training_source=metadata["training_source"],
         sample_count=metadata["sample_count"],
+        training_log=metadata["training_log"],
         score_mae=metadata["score_mae"],
         score_r2=metadata["score_r2"],
         hydration_accuracy=metadata["hydration_accuracy"],

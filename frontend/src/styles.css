@@ -770,6 +770,16 @@ main {
   margin-top: 0;
 }
 
+.model-log-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.model-log-list li {
+  margin-bottom: 0.7rem;
+  line-height: 1.55;
+}
+
 .plate-builder-card,
 .plate-profile-card,
 .plate-results-card,

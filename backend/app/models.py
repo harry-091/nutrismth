@@ -86,6 +86,7 @@ class ModelMetricsResponse(BaseModel):
     model_name: str
     training_source: str
     sample_count: int
+    training_log: list[str]
     score_mae: float
     score_r2: float
     hydration_accuracy: float

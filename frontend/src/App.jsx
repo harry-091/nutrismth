@@ -183,9 +183,9 @@ export default function App() {
                 : form.goal_victory === "no_afternoon_slump"
                   ? "energy_support"
                   : "balanced",
-        },
+          },
       }));
-      navigate("results");
+      navigate("plate");
     } catch {
       setFormError("We could not generate recommendations. Please review the inputs and try again.");
     } finally {

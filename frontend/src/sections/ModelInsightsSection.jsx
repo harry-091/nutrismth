@@ -102,6 +102,19 @@ export default function ModelInsightsSection() {
       </div>
 
       <article className="model-wide-card">
+        <h3>Training log</h3>
+        {metrics ? (
+          <ol className="model-log-list">
+            {metrics.training_log.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ol>
+        ) : (
+          <p>{loadError || "Training log will appear once the metrics load."}</p>
+        )}
+      </article>
+
+      <article className="model-wide-card">
         <h3>What still needs to happen for a stronger ML version</h3>
         <ul>
           {NEXT_STEPS.map((item) => (

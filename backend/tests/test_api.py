@@ -28,6 +28,7 @@ def test_model_metrics_endpoint():
     assert response.status_code == 200
     assert body["model_name"]
     assert body["sample_count"] >= 1000
+    assert len(body["training_log"]) >= 3
     assert body["score_r2"] > 0.9
 
 
