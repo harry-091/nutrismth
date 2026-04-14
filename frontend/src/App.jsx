@@ -8,6 +8,7 @@ import ResultsSection from "./sections/ResultsSection";
 import PlatePlannerSection from "./sections/PlatePlannerSection";
 import ModelInsightsSection from "./sections/ModelInsightsSection";
 import { fetchRecommendations, fetchSections, optimizePlate, submitAssessment } from "./lib/api";
+import { QUESTIONNAIRE_TOTAL } from "./lib/questionnaire";
 
 const initialForm = {
   age_group: "18-25",
@@ -127,11 +128,16 @@ export default function App() {
   }
 
   function handleNextQuiz() {
-    if (quizStep < 9) {
+    if (quizStep < QUESTIONNAIRE_TOTAL - 1) {
       setQuizStep((current) => current + 1);
       return;
     }
     navigate("survey");
+  }
+
+  function resetQuiz() {
+    setQuizStep(0);
+    setQuizAnswers([]);
   }
 
   function handleRetakeSurvey() {
@@ -240,6 +246,7 @@ export default function App() {
               onNext={handleNextQuiz}
               answerCount={quizAnswers.filter(Boolean).length}
               onNavigate={navigate}
+              onReset={resetQuiz}
             />
           </div>
         ) : null}
