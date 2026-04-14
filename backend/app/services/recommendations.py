@@ -35,8 +35,8 @@ PLATE_LIBRARY = {
         "rajma": {"updated": "rajma", "kind": "strong"},
         "chole": {"updated": "chole", "kind": "strong"},
         "eggs": {"updated": "eggs", "kind": "strong"},
-        "fried chicken": {"updated": "grilled chicken", "kind": "heavy"},
         "grilled chicken": {"updated": "grilled chicken", "kind": "strong"},
+        "fried chicken": {"updated": "grilled chicken", "kind": "heavy"},
         "fish": {"updated": "fish", "kind": "strong"},
         "tofu": {"updated": "tofu", "kind": "strong"},
         "soy chunks": {"updated": "soy chunks", "kind": "strong"},
@@ -69,147 +69,163 @@ PLATE_LIBRARY = {
 
 
 def normalize_payload(payload: AssessmentPayload) -> AssessmentPayload:
-    """Return normalized input while preserving the public schema."""
-    return payload.model_copy(
-        update={"water_intake_liters": round(payload.water_intake_liters, 1)}
-    )
+    return payload
 
 
 def compute_score(payload: AssessmentPayload) -> int:
-    score = 50
+    score = 55
 
-    if payload.water_intake_liters >= 2.5:
-        score += 15
-    elif payload.water_intake_liters >= 1.6:
-        score += 8
-    else:
-        score -= 12
-
-    meal_adjustments = {"balanced": 12, "mixed": 4, "irregular": -10}
-    produce_adjustments = {"daily": 12, "sometimes": 4, "rarely": -10}
-    snack_adjustments = {"whole_food": 8, "mixed": 2, "packaged": -8}
-    activity_adjustments = {"high": 8, "moderate": 4, "low": -4}
-
-    score += meal_adjustments[payload.meal_pattern]
-    score += produce_adjustments[payload.produce_frequency]
-    score += snack_adjustments[payload.snack_preference]
-    score += activity_adjustments[payload.activity_level]
-    score -= min(payload.sugary_drinks_per_week * 2, 18)
+    score += {"lt_1": -14, "1-2": -6, "2-3": 6, "gt_3": 10}[payload.water_intake]
+    score += {"1-2": -8, "3": 6, "4+": 2}[payload.meals_per_day]
+    score += {"daily": 10, "4-6_week": 6, "1-3_week": -2, "rarely": -10}[payload.fruit_veg_frequency]
+    score += {"rice": 1, "wheat": 2, "potatoes": -2, "fruits": 4, "sweets": -8, "processed": -10, "other": 0}[payload.carb_source]
+    score += {"pulses": 8, "eggs": 7, "dairy": 4, "meat": 8, "soy": 8, "nuts": 4, "other": -2}[payload.protein_source]
+    score += {"oils": 1, "ghee_butter": -1, "nuts": 4, "fried_foods": -7, "dairy": 0, "other": -1}[payload.fat_source]
+    score += {"energetic": 4, "normal": 1, "sleepy_heavy": -6}[payload.post_carb_feeling]
+    score += {"heavy": -3, "quick": 3, "south_indian": 2, "tea_biscuits": -7, "skip": -8}[payload.breakfast_type]
+    score += {"light": 5, "balanced": 4, "one_pot": -2, "takeout": -8}[payload.dinner_type]
+    score += {"low": -4, "moderate": 3, "high": 7}[payload.activity_level]
+    score += {"none": 2, "intermittent_fasting": -1, "keto": -2, "detox_cleanse": -5, "gm_diet": -5}[payload.diet_trend]
 
     return max(0, min(100, score))
+
+
+def derive_suggested_plate(payload: AssessmentPayload) -> list[PlateItem]:
+    base = {
+        "rice": "white rice",
+        "wheat": "roti",
+        "potatoes": "roti",
+        "fruits": "oats",
+        "sweets": "white rice",
+        "processed": "noodles",
+        "other": "millet",
+    }[payload.carb_source]
+
+    protein = {
+        "pulses": "dal",
+        "eggs": "eggs",
+        "dairy": "paneer",
+        "meat": "grilled chicken",
+        "soy": "tofu" if payload.diet_type == "vegan" else "soy chunks",
+        "nuts": "curd",
+        "other": "dal",
+    }[payload.protein_source]
+
+    vegetable = "salad" if payload.fruit_veg_frequency in {"daily", "4-6_week"} else "sabzi" if payload.fruit_veg_frequency == "1-3_week" else "none"
+
+    side = (
+        "water"
+        if payload.water_intake in {"2-3", "gt_3"}
+        else "buttermilk"
+        if payload.goal_victory in {"better_sleep", "no_afternoon_slump"}
+        else "fruit"
+    )
+    if payload.post_carb_feeling == "sleepy_heavy":
+        side = "water"
+
+    return [
+        PlateItem(category="base", name=base.title()),
+        PlateItem(category="protein", name=protein.title()),
+        PlateItem(category="vegetable", name=vegetable.title()),
+        PlateItem(category="side", name=side.title()),
+    ]
 
 
 def build_recommendations(payload: AssessmentPayload) -> RecommendationResponse:
     normalized = normalize_payload(payload)
     score = compute_score(normalized)
+    suggested_plate = derive_suggested_plate(normalized)
 
-    hydration_band = (
-        "Needs immediate support"
-        if normalized.water_intake_liters < 1.5
-        else "Building consistency"
-        if normalized.water_intake_liters < 2.3
-        else "Strong routine"
-    )
+    hydration_band = {
+        "lt_1": "Low hydration",
+        "1-2": "Needs improvement",
+        "2-3": "Steady intake",
+        "gt_3": "High intake",
+    }[normalized.water_intake]
     meal_band = {
-        "irregular": "Irregular eating rhythm",
-        "mixed": "Partly structured meals",
-        "balanced": "Balanced plate habits",
-    }[normalized.meal_pattern]
+        "1-2": "Low meal frequency",
+        "3": "Steady meal rhythm",
+        "4+": "Frequent eating pattern",
+    }[normalized.meals_per_day]
     variety_band = {
-        "rarely": "Low produce diversity",
-        "sometimes": "Moderate variety",
-        "daily": "High nutrient variety",
-    }[normalized.produce_frequency]
+        "daily": "High variety",
+        "4-6_week": "Good variety",
+        "1-3_week": "Moderate variety",
+        "rarely": "Low variety",
+    }[normalized.fruit_veg_frequency]
 
     risk_indicators = [
         RiskIndicator(
-            title="Hydration stability",
-            level="high" if normalized.water_intake_liters < 1.5 else "medium" if normalized.water_intake_liters < 2.3 else "low",
-            description=(
-                "Daily water intake is likely limiting energy, appetite regulation, and routine consistency."
-                if normalized.water_intake_liters < 1.5
-                else "Hydration habits are improving but still benefit from timed prompts."
-                if normalized.water_intake_liters < 2.3
-                else "Water intake is supporting a stable baseline for daily nutrition choices."
-            ),
+            title="Hydration quality",
+            level="high" if normalized.water_intake == "lt_1" else "medium" if normalized.water_intake == "1-2" else "low",
+            description="Water intake influences energy, appetite control, and how heavy meals feel through the day.",
         ),
         RiskIndicator(
             title="Meal quality",
-            level="high" if normalized.meal_pattern == "irregular" else "medium" if normalized.meal_pattern == "mixed" else "low",
-            description=(
-                "Meal timing and composition suggest a high chance of convenience-led choices."
-                if normalized.meal_pattern == "irregular"
-                else "Some meals are balanced, but the overall pattern still needs more structure."
-                if normalized.meal_pattern == "mixed"
-                else "Meal pattern is already supportive of balanced plate guidance."
-            ),
+            level="high" if normalized.breakfast_type in {"skip", "tea_biscuits"} or normalized.dinner_type == "takeout" else "medium" if normalized.dinner_type == "one_pot" else "low",
+            description="Breakfast and dinner patterns often explain whether the daily routine is balanced or convenience-heavy.",
         ),
         RiskIndicator(
-            title="Sugar displacement",
-            level="high" if normalized.sugary_drinks_per_week >= 7 else "medium" if normalized.sugary_drinks_per_week >= 3 else "low",
-            description=(
-                "Frequent sugary drinks may be displacing water and increasing low-quality calorie intake."
-                if normalized.sugary_drinks_per_week >= 7
-                else "Reducing sweetened drinks a little more would noticeably improve the nutrition profile."
-                if normalized.sugary_drinks_per_week >= 3
-                else "Sugary drink intake is currently a minor concern compared with other habits."
-            ),
+            title="Plate balance",
+            level="high" if normalized.fruit_veg_frequency == "rarely" or normalized.post_carb_feeling == "sleepy_heavy" else "medium" if normalized.carb_source in {"rice", "wheat"} else "low",
+            description="Carbohydrate-heavy meals without enough vegetables or protein often lead to afternoon heaviness and lower satiety.",
         ),
     ]
 
     hydration_actions = [
-        "Start the day with one full glass of water before tea, coffee, or breakfast.",
-        "Use a bottle target: finish 1 bottle by midday and a second by evening.",
-        "Pair each meal or snack with water instead of a sweetened drink.",
+        "Aim for regular water intake through the day instead of catching up late in the evening.",
+        "Pair chai or coffee with a glass of water so caffeine does not replace hydration.",
+        "If you often feel sleepy after meals, improve water intake before changing meal quantity.",
     ]
-    if normalized.water_intake_liters >= 2.3:
-        hydration_actions[1] = "Maintain the current routine and add hydration cues around activity or hot weather."
+
+    plate_actions = [
+        f"Your starting plate uses {suggested_plate[0].name.lower()} as the main base and {suggested_plate[1].name.lower()} as the protein anchor.",
+        "Try to keep vegetables visible on the plate instead of leaving them as a side thought.",
+        "Use the fix-plate step to convert the starting meal into a more balanced version from the same food options.",
+    ]
 
     swap_actions = [
-        "Replace one refined-carb meal this week with millet, brown rice, or another whole-grain base.",
-        "Move one packaged snack to fruit with nuts or seeds.",
-        "Keep visible, ready-to-eat whole foods where convenient snacks usually win.",
+        "If you rely on sweets or processed foods for carbohydrates, move toward roti, oats, millet, or brown rice more often.",
+        "If protein is unclear in the meal, make it explicit by adding dal, eggs, paneer, soy, or lean meat.",
+        "If your meals make you feel sleepy, reduce refined carbohydrates and improve plate balance first.",
     ]
-    if normalized.snack_preference == "whole_food":
-        swap_actions[1] = "Keep the whole-food snack habit and rotate ingredients to increase micronutrient variety."
+
+    nutrient_actions = [
+        "Fruits and vegetables improve fiber, micronutrients, and recovery across the week.",
+        "Protein sources spread across meals help with satiety, strength, and steadier energy.",
+        "Fat quality matters too: nuts and seeds support balance better than frequent fried foods.",
+    ]
 
     return RecommendationResponse(
         user_summary=UserSummary(
             hydration_band=hydration_band,
-            meal_pattern_band=meal_band,
+            meal_rhythm_band=meal_band,
             nutrition_variety_band=variety_band,
         ),
         score=score,
-        source="Rule-based recommendation engine seeded from the report themes",
-        confidence_note="This version uses explainable nutrition rules and is designed to be replaced or extended by a future ML model.",
+        source="Rule-based nutrition analysis built from the updated survey questionnaire",
+        confidence_note="This version uses a structured nutrition scoring model. The next step could be replacing these weighted rules with a trained ML model using real survey data.",
         risk_indicators=risk_indicators,
+        suggested_plate=suggested_plate,
         hydration_recommendation=GuidanceCard(
-            title="Hydration reset",
-            summary="Small, timed hydration habits create the quickest visible improvement in daily nutrition stability.",
+            title="Hydration focus",
+            summary="Hydration is one of the fastest ways to improve how meals feel and how steady your energy stays.",
             actions=hydration_actions,
         ),
         plate_guidance=GuidanceCard(
-            title="Build a more balanced plate",
-            summary="Use an easy visual rule: half vegetables, a quarter protein, and a quarter smart carbohydrates.",
-            actions=[
-                "Anchor lunch or dinner with one half-plate of vegetables or salad.",
-                "Add protein through pulses, paneer, eggs, curd, tofu, fish, or lean meat.",
-                "Keep carb portions intentional by shifting from refined flour toward whole grains where possible.",
-            ],
+            title="Generated plate",
+            summary="A starting plate has been generated from your survey answers. You can now fix and rebalance it in the next step.",
+            actions=plate_actions,
         ),
         smart_swaps=GuidanceCard(
-            title="Make low-friction food swaps",
-            summary="The goal is not restriction; it is reducing the number of default choices that work against nutrition quality.",
+            title="Carb and protein swaps",
+            summary="Your answer pattern suggests a few direct swaps that can improve meal quality without changing the whole diet.",
             actions=swap_actions,
         ),
         nutrient_education=GuidanceCard(
-            title="Nutrients to pay attention to",
-            summary="Balanced diets work best when they combine hydration, fiber, protein, and micronutrient-rich foods consistently.",
-            actions=[
-                "Vitamin- and mineral-rich foods improve recovery, concentration, and long-term health.",
-                "Fiber from vegetables, fruit, legumes, and whole grains supports fullness and gut health.",
-                "Protein distribution across the day helps build steadier energy than relying on one heavy meal.",
-            ],
+            title="Nutrition notes",
+            summary="The survey focuses on plate balance, hydration, meal rhythm, and how different food groups affect energy and recovery.",
+            actions=nutrient_actions,
         ),
     )
 
@@ -243,20 +259,20 @@ def optimize_plate(payload: PlatePlanRequest) -> PlatePlanResponse:
                 score -= 2
 
             if item.category == "base" and kind == "refined":
-                reason = "Swap refined carbs for a steadier grain option."
+                reason = "This base is a little heavier or more refined than needed, so it was swapped to a steadier carbohydrate source."
             elif item.category == "protein" and kind == "heavy":
-                reason = "Use a leaner protein choice to keep the plate more balanced."
+                reason = "This protein choice was made lighter to improve balance while keeping protein quality strong."
             elif item.category == "vegetable" and kind in {"weak", "missing"}:
-                reason = "Add vegetables so the plate has more fiber, volume, and micronutrients."
+                reason = "The plate needed a clearer vegetable component for fiber, volume, and micronutrient support."
             elif item.category == "side" and kind == "weak":
-                reason = "Change the side to something that supports hydration or nutrient quality."
+                reason = "The side was changed to something that supports hydration or satiety more effectively."
 
         if payload.profile.goal == "higher_protein" and item.category == "protein":
-            reason = "Keep a stronger protein portion for this goal."
+            reason = "The plate keeps a stronger protein anchor because the selected goal is higher protein."
             score += 5
-        elif payload.profile.goal == "lighter_meal" and item.category == "side" and updated_name in {"fruit", "curd", "water"}:
+        elif payload.profile.goal == "lighter_meal" and item.category == "side" and updated_name in {"fruit", "curd", "water", "buttermilk"}:
             score += 4
-        elif payload.profile.goal == "energy_support" and item.category == "base" and updated_name in {"brown rice", "millet", "multigrain roti"}:
+        elif payload.profile.goal == "energy_support" and item.category == "base" and updated_name in {"brown rice", "millet", "multigrain roti", "quinoa", "oats"}:
             score += 4
 
         optimized_items.append(PlateItem(category=item.category, name=updated_name.title()))
@@ -284,18 +300,18 @@ def optimize_plate(payload: PlatePlanRequest) -> PlatePlanResponse:
         "vegetables": "1/2 plate",
         "protein": "1/4 plate" if payload.profile.goal != "higher_protein" else "1/3 plate",
         "smart_carbs": "1/4 plate" if payload.profile.goal != "higher_protein" else "1/6 plate",
-        "side": "Water, curd, fruit, or nuts in a small portion",
+        "side": "Water, curd, fruit, buttermilk, or nuts in a small portion",
     }
 
     tips = [
-        f"Body weight: {int(payload.profile.body_weight_kg)} kg, so keep protein present in every main meal.",
-        "If you are still hungry after this plate, add more vegetables or a protein side before adding more refined carbs.",
+        f"Body weight: {int(payload.profile.body_weight_kg)} kg, so protein should stay visible in the meal rather than being incidental.",
+        "If the meal still feels too heavy after fixing the plate, reduce refined carbs before reducing vegetables or protein.",
         goal_notes[payload.profile.goal],
     ]
 
     return PlatePlanResponse(
         score=score,
-        summary="The plate has been adjusted to improve balance, fiber, and meal quality while matching the selected goal.",
+        summary="The plate has been adjusted using the same allowed food options to improve balance, satiety, hydration support, and energy stability.",
         target_split=target_split,
         optimized_plate=optimized_items,
         adjustments=adjustments,

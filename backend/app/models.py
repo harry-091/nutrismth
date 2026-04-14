@@ -5,12 +5,8 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
-AgeGroup = Literal["13-17", "18-25", "26-40", "41-60", "60+"]
-Gender = Literal["female", "male", "non-binary", "prefer_not_to_say"]
-HydrationLevel = Literal["low", "medium", "high"]
-MealPattern = Literal["irregular", "mixed", "balanced"]
-ProduceFrequency = Literal["rarely", "sometimes", "daily"]
-SnackPreference = Literal["packaged", "mixed", "whole_food"]
+AgeGroup = Literal["15-18", "19-25", "26-35", "35+"]
+Gender = Literal["female", "male"]
 
 
 class SectionHighlight(BaseModel):
@@ -30,12 +26,18 @@ class ContentSection(BaseModel):
 class AssessmentPayload(BaseModel):
     age_group: AgeGroup
     gender: Gender
-    water_intake_liters: float = Field(ge=0.2, le=8)
-    hydration_level: HydrationLevel
-    meal_pattern: MealPattern
-    produce_frequency: ProduceFrequency
-    snack_preference: SnackPreference
-    sugary_drinks_per_week: int = Field(ge=0, le=35)
+    diet_type: Literal["vegetarian", "non-vegetarian", "eggetarian", "vegan"]
+    meals_per_day: Literal["1-2", "3", "4+"]
+    fruit_veg_frequency: Literal["daily", "4-6_week", "1-3_week", "rarely"]
+    diet_trend: Literal["none", "keto", "intermittent_fasting", "detox_cleanse", "gm_diet"]
+    water_intake: Literal["lt_1", "1-2", "2-3", "gt_3"]
+    carb_source: Literal["rice", "wheat", "potatoes", "fruits", "sweets", "processed", "other"]
+    protein_source: Literal["pulses", "eggs", "dairy", "meat", "soy", "nuts", "other"]
+    fat_source: Literal["oils", "ghee_butter", "nuts", "fried_foods", "dairy", "other"]
+    post_carb_feeling: Literal["energetic", "normal", "sleepy_heavy"]
+    breakfast_type: Literal["heavy", "quick", "south_indian", "tea_biscuits", "skip"]
+    dinner_type: Literal["light", "balanced", "one_pot", "takeout"]
+    goal_victory: Literal["more_energy", "better_sleep", "clearer_skin", "feeling_stronger", "no_afternoon_slump"]
     activity_level: Literal["low", "moderate", "high"]
 
 
@@ -47,7 +49,7 @@ class AssessmentResponse(BaseModel):
 
 class UserSummary(BaseModel):
     hydration_band: str
-    meal_pattern_band: str
+    meal_rhythm_band: str
     nutrition_variety_band: str
 
 
@@ -69,6 +71,7 @@ class RecommendationResponse(BaseModel):
     source: str
     confidence_note: str
     risk_indicators: list[RiskIndicator]
+    suggested_plate: list["PlateItem"]
     hydration_recommendation: GuidanceCard
     plate_guidance: GuidanceCard
     smart_swaps: GuidanceCard
