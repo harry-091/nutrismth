@@ -57,7 +57,7 @@ def test_recommendations_happy_path():
     assert response.status_code == 200
     assert body["user_summary"]["hydration_band"] == "Low hydration"
     assert body["hydration_recommendation"]["actions"]
-    assert len(body["suggested_plate"]) == 4
+    assert len(body["suggested_plate"]) == 6
     assert any(item["category"] == "protein" for item in body["suggested_plate"])
 
 
@@ -90,8 +90,10 @@ def test_plate_optimizer_returns_adjusted_plate():
         "items": [
             {"category": "base", "name": "white rice"},
             {"category": "protein", "name": "fried chicken"},
-            {"category": "vegetable", "name": "none"},
-            {"category": "side", "name": "soft drink"},
+            {"category": "cooked_veg", "name": "none"},
+            {"category": "fresh_side", "name": "nachos"},
+            {"category": "drink", "name": "sweet soda"},
+            {"category": "add_on", "name": "salted chips"},
         ],
         "profile": {
             "age_group": "19-25",
@@ -107,5 +109,6 @@ def test_plate_optimizer_returns_adjusted_plate():
 
     assert response.status_code == 200
     assert body["score"] > 0
-    assert any(item["name"] == "Brown Rice" for item in body["optimized_plate"])
-    assert any(change["updated"] == "Water" for change in body["adjustments"])
+    assert any(item["name"] == "White Rice" for item in body["optimized_plate"])
+    assert len(body["adjustments"]) == 6
+    assert any("drops a bit" in change["reason"] or "less balanced" in change["reason"] or "less nutrition support" in change["reason"] for change in body["adjustments"])

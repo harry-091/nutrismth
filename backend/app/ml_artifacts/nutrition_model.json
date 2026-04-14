@@ -9,7 +9,7 @@
     "Splitting dataset into training and test partitions with an 80/20 split.",
     "Training LinearRegression for nutrition score prediction.",
     "Training DecisionTreeClassifier models for hydration, meal rhythm, and nutrition variety bands.",
-    "Training DecisionTreeClassifier models for base, protein, vegetable, and side plate generation.",
+    "Training DecisionTreeClassifier models for base, protein, cooked veg, fresh side, drink, and add-on plate generation.",
     "Evaluating regression with MAE and R2, and classification tasks with accuracy.",
     "Saving the fitted model bundle and metrics JSON into backend/app/ml_artifacts."
   ],
@@ -21,7 +21,9 @@
   "plate_accuracy": {
     "base": 1.0,
     "protein": 1.0,
-    "vegetable": 1.0,
-    "side": 1.0
+    "cooked_veg": 1.0,
+    "fresh_side": 1.0,
+    "drink": 1.0,
+    "add_on": 1.0
   }
 }

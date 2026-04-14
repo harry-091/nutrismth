@@ -30,10 +30,12 @@ const initialForm = {
 
 const initialPlateForm = {
   items: {
-    base: "white rice",
-    protein: "dal",
-    vegetable: "sabzi",
-    side: "fruit",
+    base: "brown rice",
+    protein: "dal tadka",
+    cooked_veg: "spinach corn",
+    fresh_side: "kachumber salad",
+    drink: "water",
+    add_on: "curd bowl",
   },
   profile: {
     age_group: "19-25",
@@ -100,6 +102,38 @@ export default function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const timeoutId = window.setTimeout(async () => {
+      setPlateError("");
+      setIsOptimizingPlate(true);
+
+      try {
+        const payload = {
+          items: Object.entries(plateForm.items).map(([category, name]) => ({ category, name })),
+          profile: plateForm.profile,
+        };
+        const data = await optimizePlate(payload);
+        if (!cancelled) {
+          setPlateResult(data);
+        }
+      } catch {
+        if (!cancelled) {
+          setPlateError("We could not update the plate score right now.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsOptimizingPlate(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [plateForm]);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -214,25 +248,6 @@ export default function App() {
     }));
   }
 
-  async function handlePlateSubmit(event) {
-    event.preventDefault();
-    setPlateError("");
-    setIsOptimizingPlate(true);
-
-    try {
-      const payload = {
-        items: Object.entries(plateForm.items).map(([category, name]) => ({ category, name })),
-        profile: plateForm.profile,
-      };
-      const data = await optimizePlate(payload);
-      setPlateResult(data);
-    } catch {
-      setPlateError("We could not adjust the plate right now.");
-    } finally {
-      setIsOptimizingPlate(false);
-    }
-  }
-
   return (
     <div className="page-shell">
       <header className="site-header">
@@ -314,11 +329,11 @@ export default function App() {
               plateForm={plateForm}
               onPlateItemChange={handlePlateItemChange}
               onProfileChange={handlePlateProfileChange}
-              onSubmit={handlePlateSubmit}
               loading={isOptimizingPlate}
               data={plateResult}
               error={plateError}
               onNavigate={navigate}
+              onViewResults={() => navigate("results")}
             />
           </div>
         ) : null}

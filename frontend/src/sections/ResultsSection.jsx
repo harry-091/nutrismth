@@ -60,8 +60,8 @@ export default function ResultsSection({ data, onNavigate, onRetakeSurvey, onOpe
       <div className="plate-results-card">
         <SectionHeading
           eyebrow="Generated plate"
-          title="Your survey answers have been turned into a starting plate."
-          body="This plate mirrors the pattern in your answers. Open the next step to fix it using the same allowed food options with detailed explanations."
+          title="Your survey answers have been turned into a balanced starting plate."
+          body="The plate planner lets you edit this meal live while the plate rating updates immediately."
         />
 
         <div className="optimized-plate-grid">
@@ -93,7 +93,7 @@ export default function ResultsSection({ data, onNavigate, onRetakeSurvey, onOpe
 
       <div className="results-actions">
         <button type="button" className="button button-primary" onClick={onOpenPlate}>
-          Fix this plate
+          Back to plate planner
         </button>
         <button type="button" className="button button-secondary" onClick={onRetakeSurvey}>
           Retake survey

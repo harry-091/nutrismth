@@ -71,8 +71,10 @@ def predict_assessment(payload: AssessmentPayload) -> MLPrediction | None:
     suggested_plate = [
         PlateItem(category="base", name=str(bundle["plate_models"]["base"].predict(features)[0])),
         PlateItem(category="protein", name=str(bundle["plate_models"]["protein"].predict(features)[0])),
-        PlateItem(category="vegetable", name=str(bundle["plate_models"]["vegetable"].predict(features)[0])),
-        PlateItem(category="side", name=str(bundle["plate_models"]["side"].predict(features)[0])),
+        PlateItem(category="cooked_veg", name=str(bundle["plate_models"]["cooked_veg"].predict(features)[0])),
+        PlateItem(category="fresh_side", name=str(bundle["plate_models"]["fresh_side"].predict(features)[0])),
+        PlateItem(category="drink", name=str(bundle["plate_models"]["drink"].predict(features)[0])),
+        PlateItem(category="add_on", name=str(bundle["plate_models"]["add_on"].predict(features)[0])),
     ]
 
     return MLPrediction(

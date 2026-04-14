@@ -95,7 +95,7 @@ class ModelMetricsResponse(BaseModel):
     plate_accuracy: dict[str, float]
 
 
-PlateCategory = Literal["base", "protein", "vegetable", "side"]
+PlateCategory = Literal["base", "protein", "cooked_veg", "fresh_side", "drink", "add_on"]
 
 
 class PlateItem(BaseModel):
@@ -112,7 +112,7 @@ class PlateProfile(BaseModel):
 
 
 class PlatePlanRequest(BaseModel):
-    items: list[PlateItem] = Field(min_length=3, max_length=4)
+    items: list[PlateItem] = Field(min_length=6, max_length=6)
     profile: PlateProfile
 
 

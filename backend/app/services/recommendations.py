@@ -16,55 +16,78 @@ from .ml_model import model_is_available, predict_assessment
 
 PLATE_LIBRARY = {
     "base": {
-        "white rice": {"updated": "brown rice", "kind": "refined"},
-        "brown rice": {"updated": "brown rice", "kind": "smart"},
-        "millet": {"updated": "millet", "kind": "smart"},
-        "roti": {"updated": "multigrain roti", "kind": "balanced"},
-        "multigrain roti": {"updated": "multigrain roti", "kind": "smart"},
-        "quinoa": {"updated": "quinoa", "kind": "smart"},
-        "oats": {"updated": "oats", "kind": "smart"},
-        "poha": {"updated": "poha", "kind": "balanced"},
-        "idli": {"updated": "idli", "kind": "balanced"},
-        "dosa": {"updated": "dosa", "kind": "balanced"},
-        "upma": {"updated": "upma", "kind": "balanced"},
-        "noodles": {"updated": "millet noodles", "kind": "refined"},
-        "millet noodles": {"updated": "millet noodles", "kind": "smart"},
+        "brown rice": {"kind": "smart"},
+        "multigrain roti": {"kind": "smart"},
+        "millet khichdi": {"kind": "smart"},
+        "quinoa pulao": {"kind": "smart"},
+        "oats chilla": {"kind": "smart"},
+        "idli": {"kind": "balanced"},
+        "poha": {"kind": "balanced"},
+        "sweet potato bowl": {"kind": "smart"},
+        "white rice": {"kind": "refined"},
+        "butter naan": {"kind": "heavy"},
+        "instant noodles": {"kind": "refined"},
+        "creamy pasta": {"kind": "heavy"},
     },
     "protein": {
-        "paneer": {"updated": "paneer", "kind": "strong"},
-        "dal": {"updated": "dal", "kind": "strong"},
-        "rajma": {"updated": "rajma", "kind": "strong"},
-        "chole": {"updated": "chole", "kind": "strong"},
-        "eggs": {"updated": "eggs", "kind": "strong"},
-        "grilled chicken": {"updated": "grilled chicken", "kind": "strong"},
-        "fried chicken": {"updated": "grilled chicken", "kind": "heavy"},
-        "fish": {"updated": "fish", "kind": "strong"},
-        "tofu": {"updated": "tofu", "kind": "strong"},
-        "soy chunks": {"updated": "soy chunks", "kind": "strong"},
-        "curd": {"updated": "curd", "kind": "light"},
+        "dal tadka": {"kind": "strong"},
+        "rajma masala": {"kind": "strong"},
+        "chickpea curry": {"kind": "strong"},
+        "paneer tikka": {"kind": "strong"},
+        "egg bhurji": {"kind": "strong"},
+        "grilled chicken": {"kind": "strong"},
+        "fish curry": {"kind": "strong"},
+        "tofu stir-fry": {"kind": "strong"},
+        "soy chunk masala": {"kind": "strong"},
+        "hung curd dip": {"kind": "light"},
+        "fried chicken": {"kind": "heavy"},
+        "creamy paneer": {"kind": "heavy"},
     },
-    "vegetable": {
-        "salad": {"updated": "salad", "kind": "strong"},
-        "sabzi": {"updated": "sabzi", "kind": "strong"},
-        "mixed vegetables": {"updated": "mixed vegetables", "kind": "strong"},
-        "spinach": {"updated": "spinach", "kind": "strong"},
-        "broccoli": {"updated": "broccoli", "kind": "strong"},
-        "cucumber": {"updated": "cucumber", "kind": "strong"},
-        "carrot": {"updated": "carrot", "kind": "strong"},
-        "sauteed vegetables": {"updated": "sauteed vegetables", "kind": "strong"},
-        "potato fries": {"updated": "sauteed vegetables", "kind": "weak"},
-        "none": {"updated": "salad", "kind": "missing"},
+    "cooked_veg": {
+        "bhindi sabzi": {"kind": "strong"},
+        "lauki sabzi": {"kind": "strong"},
+        "spinach corn": {"kind": "strong"},
+        "cabbage peas": {"kind": "strong"},
+        "roasted broccoli": {"kind": "strong"},
+        "mixed veg stir-fry": {"kind": "strong"},
+        "pumpkin sabzi": {"kind": "strong"},
+        "mushroom pepper saute": {"kind": "strong"},
+        "potato fries": {"kind": "weak"},
+        "crispy corn": {"kind": "weak"},
+        "none": {"kind": "missing"},
     },
-    "side": {
-        "fruit": {"updated": "fruit", "kind": "smart"},
-        "curd": {"updated": "curd", "kind": "smart"},
-        "buttermilk": {"updated": "buttermilk", "kind": "smart"},
-        "water": {"updated": "water", "kind": "smart"},
-        "chips": {"updated": "fruit", "kind": "weak"},
-        "soft drink": {"updated": "water", "kind": "weak"},
-        "nuts and seeds": {"updated": "nuts and seeds", "kind": "smart"},
-        "sprouts": {"updated": "sprouts", "kind": "smart"},
-        "pickle": {"updated": "curd", "kind": "weak"},
+    "fresh_side": {
+        "cucumber salad": {"kind": "smart"},
+        "kachumber salad": {"kind": "smart"},
+        "fruit bowl": {"kind": "smart"},
+        "sprout chaat": {"kind": "smart"},
+        "carrot sticks": {"kind": "smart"},
+        "tomato onion salad": {"kind": "smart"},
+        "mint yogurt salad": {"kind": "smart"},
+        "none": {"kind": "missing"},
+        "nachos": {"kind": "weak"},
+        "cream biscuit": {"kind": "weak"},
+    },
+    "drink": {
+        "water": {"kind": "smart"},
+        "buttermilk": {"kind": "smart"},
+        "lemon water": {"kind": "smart"},
+        "coconut water": {"kind": "smart"},
+        "unsweetened chai": {"kind": "balanced"},
+        "plain lassi": {"kind": "balanced"},
+        "sweet soda": {"kind": "weak"},
+        "packaged juice": {"kind": "weak"},
+        "milkshake": {"kind": "heavy"},
+    },
+    "add_on": {
+        "curd bowl": {"kind": "smart"},
+        "roasted makhana": {"kind": "smart"},
+        "nuts and seeds": {"kind": "smart"},
+        "peanut chutney": {"kind": "balanced"},
+        "hummus": {"kind": "smart"},
+        "pickle": {"kind": "weak"},
+        "gulab jamun": {"kind": "weak"},
+        "salted chips": {"kind": "weak"},
     },
 }
 
@@ -93,42 +116,65 @@ def compute_rule_score(payload: AssessmentPayload) -> int:
 
 def derive_rule_suggested_plate(payload: AssessmentPayload) -> list[PlateItem]:
     base = {
-        "rice": "white rice",
-        "wheat": "roti",
-        "potatoes": "roti",
-        "fruits": "oats",
-        "sweets": "white rice",
-        "processed": "noodles",
-        "other": "millet",
+        "rice": "brown rice",
+        "wheat": "multigrain roti",
+        "potatoes": "sweet potato bowl",
+        "fruits": "oats chilla",
+        "sweets": "millet khichdi",
+        "processed": "quinoa pulao",
+        "other": "millet khichdi",
     }[payload.carb_source]
 
     protein = {
-        "pulses": "dal",
-        "eggs": "eggs",
-        "dairy": "paneer",
+        "pulses": "dal tadka",
+        "eggs": "egg bhurji",
+        "dairy": "paneer tikka",
         "meat": "grilled chicken",
-        "soy": "tofu" if payload.diet_type == "vegan" else "soy chunks",
-        "nuts": "curd",
-        "other": "dal",
+        "soy": "tofu stir-fry" if payload.diet_type == "vegan" else "soy chunk masala",
+        "nuts": "hung curd dip",
+        "other": "chickpea curry",
     }[payload.protein_source]
 
-    vegetable = "salad" if payload.fruit_veg_frequency in {"daily", "4-6_week"} else "sabzi" if payload.fruit_veg_frequency == "1-3_week" else "none"
-
-    side = (
+    cooked_veg = (
+        "roasted broccoli"
+        if payload.goal_victory in {"clearer_skin", "more_energy"}
+        else "spinach corn"
+        if payload.fruit_veg_frequency in {"daily", "4-6_week"}
+        else "mixed veg stir-fry"
+        if payload.fruit_veg_frequency == "1-3_week"
+        else "lauki sabzi"
+    )
+    fresh_side = (
+        "sprout chaat"
+        if payload.goal_victory == "feeling_stronger"
+        else "fruit bowl"
+        if payload.post_carb_feeling == "sleepy_heavy"
+        else "kachumber salad"
+        if payload.fruit_veg_frequency in {"daily", "4-6_week"}
+        else "cucumber salad"
+    )
+    drink = (
         "water"
         if payload.water_intake in {"2-3", "gt_3"}
         else "buttermilk"
         if payload.goal_victory in {"better_sleep", "no_afternoon_slump"}
-        else "fruit"
+        else "lemon water"
     )
-    if payload.post_carb_feeling == "sleepy_heavy":
-        side = "water"
+    add_on = (
+        "nuts and seeds"
+        if payload.goal_victory in {"clearer_skin", "more_energy"}
+        else "roasted makhana"
+        if payload.goal_victory == "better_sleep"
+        else "curd bowl"
+    )
 
     return [
         PlateItem(category="base", name=base.title()),
         PlateItem(category="protein", name=protein.title()),
-        PlateItem(category="vegetable", name=vegetable.title()),
-        PlateItem(category="side", name=side.title()),
+        PlateItem(category="cooked_veg", name=cooked_veg.title()),
+        PlateItem(category="fresh_side", name=fresh_side.title()),
+        PlateItem(category="drink", name=drink.title()),
+        PlateItem(category="add_on", name=add_on.title()),
     ]
 
 
@@ -208,8 +254,8 @@ def build_recommendations(payload: AssessmentPayload) -> RecommendationResponse:
 
     plate_actions = [
         f"Your starting plate uses {suggested_plate[0].name.lower()} as the main base and {suggested_plate[1].name.lower()} as the protein anchor.",
-        "Try to keep vegetables visible on the plate instead of leaving them as a side thought.",
-        "Use the fix-plate step to convert the starting meal into a more balanced version from the same food options.",
+        "The fresh side, drink, and add-on were chosen to support hydration and balance around the main meal.",
+        "You can edit any plate section and the live plate score will update immediately.",
     ]
 
     swap_actions = [
@@ -250,7 +296,7 @@ def build_recommendations(payload: AssessmentPayload) -> RecommendationResponse:
         ),
         plate_guidance=GuidanceCard(
             title="Generated plate",
-            summary="A starting plate has been generated from your survey answers. You can now fix and rebalance it in the next step.",
+            summary="A balanced plate has been generated from your survey answers and can be adjusted live without leaving the planner.",
             actions=plate_actions,
         ),
         smart_swaps=GuidanceCard(
@@ -269,7 +315,7 @@ def build_recommendations(payload: AssessmentPayload) -> RecommendationResponse:
 def optimize_plate(payload: PlatePlanRequest) -> PlatePlanResponse:
     optimized_items: list[PlateItem] = []
     adjustments: list[PlateSuggestion] = []
-    score = 58
+    score = 62
 
     goal_notes = {
         "balanced": "Keep the plate even across vegetables, protein, and steady carbs.",
@@ -278,50 +324,66 @@ def optimize_plate(payload: PlatePlanRequest) -> PlatePlanResponse:
         "energy_support": "Use steady carbs, protein, and hydration-friendly sides for better energy through the day.",
     }
 
-    seen_categories = {item.category for item in payload.items}
-    if "vegetable" not in seen_categories:
-        payload.items = payload.items + [PlateItem(category="vegetable", name="none")]
-
     for item in payload.items:
         library_item = PLATE_LIBRARY[item.category].get(item.name.lower())
-        updated_name = item.name
-        reason = "This item already fits the plate well."
+        selected_name = item.name
+        reason = "This choice supports the plate well."
 
         if library_item:
-            updated_name = library_item["updated"]
             kind = library_item["kind"]
 
-            if kind in {"refined", "weak", "heavy", "missing"}:
+            if kind == "smart":
+                score += 4
+                reason = "This is a strong pick for this section and helps overall plate quality."
+            elif kind == "strong":
+                score += 5
+                reason = "This section adds strong nutritional value and improves the overall balance."
+            elif kind in {"balanced", "light"}:
+                score += 2
+                reason = "This works well here and keeps the plate practical without overloading it."
+            elif kind == "refined":
+                score -= 6
+                reason = "This option is more refined than ideal, so the plate score drops a bit."
+            elif kind == "heavy":
+                score -= 8
+                reason = "This option makes the plate heavier and less steady for energy."
+            elif kind == "weak":
+                score -= 7
+                reason = "This choice adds less nutrition support than the other available options."
+            elif kind == "missing":
+                score -= 10
+                reason = "Leaving this section empty makes the plate less balanced."
+
+            if item.category == "base" and kind in {"refined", "heavy"}:
                 score -= 2
+            if item.category == "protein" and kind in {"strong", "smart"}:
+                score += 2
+            if item.category in {"cooked_veg", "fresh_side"} and kind in {"strong", "smart"}:
+                score += 2
+            if item.category == "drink" and selected_name.lower() in {"water", "buttermilk", "lemon water", "coconut water"}:
+                score += 3
+            if item.category == "drink" and kind in {"weak", "heavy"}:
+                score -= 4
+            if item.category == "add_on" and kind == "smart":
+                score += 2
 
-            if item.category == "base" and kind == "refined":
-                reason = "This base is a little heavier or more refined than needed, so it was swapped to a steadier carbohydrate source."
-            elif item.category == "protein" and kind == "heavy":
-                reason = "This protein choice was made lighter to improve balance while keeping protein quality strong."
-            elif item.category == "vegetable" and kind in {"weak", "missing"}:
-                reason = "The plate needed a clearer vegetable component for fiber, volume, and micronutrient support."
-            elif item.category == "side" and kind == "weak":
-                reason = "The side was changed to something that supports hydration or satiety more effectively."
-
-        if payload.profile.goal == "higher_protein" and item.category == "protein":
-            reason = "The plate keeps a stronger protein anchor because the selected goal is higher protein."
+        if payload.profile.goal == "higher_protein" and item.category == "protein" and library_item and library_item["kind"] in {"strong", "smart"}:
             score += 5
-        elif payload.profile.goal == "lighter_meal" and item.category == "side" and updated_name in {"fruit", "curd", "water", "buttermilk"}:
+            reason = "This protein choice matches the higher-protein goal especially well."
+        elif payload.profile.goal == "lighter_meal" and item.category in {"fresh_side", "drink", "add_on"} and library_item and library_item["kind"] in {"smart", "balanced", "light"}:
             score += 4
-        elif payload.profile.goal == "energy_support" and item.category == "base" and updated_name in {"brown rice", "millet", "multigrain roti", "quinoa", "oats"}:
+        elif payload.profile.goal == "energy_support" and item.category == "base" and selected_name.lower() in {"brown rice", "multigrain roti", "millet khichdi", "quinoa pulao", "oats chilla", "sweet potato bowl"}:
             score += 4
 
-        optimized_items.append(PlateItem(category=item.category, name=updated_name.title()))
-
-        if updated_name.lower() != item.name.lower():
-            adjustments.append(
-                PlateSuggestion(
-                    category=item.category,
-                    original=item.name.title(),
-                    updated=updated_name.title(),
-                    reason=reason,
-                )
+        optimized_items.append(PlateItem(category=item.category, name=selected_name.title()))
+        adjustments.append(
+            PlateSuggestion(
+                category=item.category,
+                original=item.name.title(),
+                updated=item.name.title(),
+                reason=reason,
             )
+        )
 
     if payload.profile.body_weight_kg >= 80 and payload.profile.goal != "higher_protein":
         score += 3
@@ -333,21 +395,21 @@ def optimize_plate(payload: PlatePlanRequest) -> PlatePlanResponse:
     score = max(0, min(100, score + 18))
 
     target_split = {
-        "vegetables": "1/2 plate",
-        "protein": "1/4 plate" if payload.profile.goal != "higher_protein" else "1/3 plate",
-        "smart_carbs": "1/4 plate" if payload.profile.goal != "higher_protein" else "1/6 plate",
-        "side": "Water, curd, fruit, buttermilk, or nuts in a small portion",
+        "base": "Choose one steady carbohydrate anchor",
+        "protein": "Make this the strongest visible section after vegetables",
+        "vegetables": "Use both cooked and fresh sections for variety and fiber",
+        "drink": "Prefer hydration-supporting drinks over sweet beverages",
     }
 
     tips = [
-        f"Body weight: {int(payload.profile.body_weight_kg)} kg, so protein should stay visible in the meal rather than being incidental.",
-        "If the meal still feels too heavy after fixing the plate, reduce refined carbs before reducing vegetables or protein.",
+        f"At {int(payload.profile.body_weight_kg)} kg, protein should stay intentional rather than incidental in the plate.",
+        "The live score responds to each edit, so small changes like replacing the drink or add-on can lift the overall rating quickly.",
         goal_notes[payload.profile.goal],
     ]
 
     return PlatePlanResponse(
         score=score,
-        summary="The plate has been adjusted using the same allowed food options to improve balance, satiety, hydration support, and energy stability.",
+        summary="This is your current plate quality score based on how the selected sections work together for balance, satiety, hydration support, and energy stability.",
         target_split=target_split,
         optimized_plate=optimized_items,
         adjustments=adjustments,

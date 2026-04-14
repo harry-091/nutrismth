@@ -66,8 +66,10 @@ def build_dataset(sample_count: int = SAMPLE_COUNT, seed: int = SEED):
         "nutrition_variety_band": [],
         "base": [],
         "protein": [],
-        "vegetable": [],
-        "side": [],
+        "cooked_veg": [],
+        "fresh_side": [],
+        "drink": [],
+        "add_on": [],
     }
 
     for _ in range(sample_count):
@@ -84,8 +86,10 @@ def build_dataset(sample_count: int = SAMPLE_COUNT, seed: int = SEED):
         labels["nutrition_variety_band"].append(variety_band)
         labels["base"].append(plate[0].name)
         labels["protein"].append(plate[1].name)
-        labels["vegetable"].append(plate[2].name)
-        labels["side"].append(plate[3].name)
+        labels["cooked_veg"].append(plate[2].name)
+        labels["fresh_side"].append(plate[3].name)
+        labels["drink"].append(plate[4].name)
+        labels["add_on"].append(plate[5].name)
 
     return rows, labels
 
@@ -98,7 +102,7 @@ def train_and_save():
         "Splitting dataset into training and test partitions with an 80/20 split.",
         "Training LinearRegression for nutrition score prediction.",
         "Training DecisionTreeClassifier models for hydration, meal rhythm, and nutrition variety bands.",
-        "Training DecisionTreeClassifier models for base, protein, vegetable, and side plate generation.",
+        "Training DecisionTreeClassifier models for base, protein, cooked veg, fresh side, drink, and add-on plate generation.",
         "Evaluating regression with MAE and R2, and classification tasks with accuracy.",
         "Saving the fitted model bundle and metrics JSON into backend/app/ml_artifacts.",
     ]
@@ -131,7 +135,7 @@ def train_and_save():
 
     plate_models = {}
     plate_accuracy = {}
-    for category in ["base", "protein", "vegetable", "side"]:
+    for category in ["base", "protein", "cooked_veg", "fresh_side", "drink", "add_on"]:
         model = DecisionTreeClassifier(random_state=SEED)
         model.fit(x_train, [labels[category][index] for index in train_indices])
         predictions = model.predict(x_test)

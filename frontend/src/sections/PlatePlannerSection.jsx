@@ -3,63 +3,88 @@ import { useState } from "react";
 
 const OPTIONS = {
   base: [
-    "white rice",
     "brown rice",
-    "millet",
-    "roti",
     "multigrain roti",
-    "quinoa",
-    "oats",
-    "poha",
+    "millet khichdi",
+    "quinoa pulao",
+    "oats chilla",
     "idli",
-    "dosa",
-    "upma",
-    "noodles",
-    "millet noodles",
+    "poha",
+    "sweet potato bowl",
+    "white rice",
+    "butter naan",
+    "instant noodles",
+    "creamy pasta",
   ],
   protein: [
-    "paneer",
-    "dal",
-    "rajma",
-    "chole",
-    "eggs",
+    "dal tadka",
+    "rajma masala",
+    "chickpea curry",
+    "paneer tikka",
+    "egg bhurji",
     "grilled chicken",
+    "fish curry",
+    "tofu stir-fry",
+    "soy chunk masala",
+    "hung curd dip",
     "fried chicken",
-    "fish",
-    "tofu",
-    "soy chunks",
-    "curd",
+    "creamy paneer",
   ],
-  vegetable: [
-    "salad",
-    "sabzi",
-    "mixed vegetables",
-    "spinach",
-    "broccoli",
-    "cucumber",
-    "carrot",
-    "sauteed vegetables",
+  cooked_veg: [
+    "bhindi sabzi",
+    "lauki sabzi",
+    "spinach corn",
+    "cabbage peas",
+    "roasted broccoli",
+    "mixed veg stir-fry",
+    "pumpkin sabzi",
+    "mushroom pepper saute",
     "potato fries",
+    "crispy corn",
     "none",
   ],
-  side: [
-    "fruit",
-    "curd",
-    "buttermilk",
+  fresh_side: [
+    "cucumber salad",
+    "kachumber salad",
+    "fruit bowl",
+    "sprout chaat",
+    "carrot sticks",
+    "tomato onion salad",
+    "mint yogurt salad",
+    "nachos",
+    "cream biscuit",
+    "none",
+  ],
+  drink: [
     "water",
+    "buttermilk",
+    "lemon water",
+    "coconut water",
+    "unsweetened chai",
+    "plain lassi",
+    "sweet soda",
+    "packaged juice",
+    "milkshake",
+  ],
+  add_on: [
+    "curd bowl",
+    "roasted makhana",
     "nuts and seeds",
-    "sprouts",
-    "chips",
-    "soft drink",
+    "peanut chutney",
+    "hummus",
     "pickle",
+    "gulab jamun",
+    "salted chips",
   ],
 };
 
 const CATEGORY_LABELS = {
   base: "Base",
   protein: "Protein",
-  vegetable: "Vegetable",
-  side: "Side",
+  cooked_veg: "Cooked Veg",
+  fresh_side: "Fresh Side",
+  drink: "Drink",
+  add_on: "Add-on",
 };
 
 function ChoiceChips({ category, value, onChange }) {
@@ -76,7 +101,7 @@ function ChoiceChips({ category, value, onChange }) {
           type="text"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder={`Search ${category} options`}
+          placeholder={`Search ${CATEGORY_LABELS[category].toLowerCase()} options`}
         />
       </label>
 
@@ -104,22 +129,22 @@ export default function PlatePlannerSection({
   plateForm,
   onPlateItemChange,
   onProfileChange,
-  onSubmit,
   loading,
   data,
   error,
   onNavigate,
+  onViewResults,
 }) {
   return (
     <section className="plate-planner-page">
       <div className="plate-builder-card">
         <SectionHeading
           eyebrow="Plate planner"
-          title="Review the generated plate and let the app rebalance it."
-          body="The survey has already built a starting plate for you. You can still tweak any food choice here before asking for a corrected version with detailed swaps and portion guidance."
+          title="Your survey has already built a balanced plate."
+          body="Change any section you want and the plate rating updates live. There is no separate fix step now, because the starting plate is already designed to be a strong option."
         />
 
-        <div className="plate-visual">
+        <div className="plate-visual plate-visual-expanded">
           {Object.entries(CATEGORY_LABELS).map(([category, label]) => (
             <div key={category} className={`plate-zone zone-${category}`}>
               <span>{label}</span>
@@ -128,7 +153,7 @@ export default function PlatePlannerSection({
           ))}
         </div>
 
-        <div className="plate-config-grid">
+        <div className="plate-config-grid plate-config-grid-expanded">
           {Object.keys(CATEGORY_LABELS).map((category) => (
             <div key={category} className="plate-config-card">
               <p className="eyebrow">{CATEGORY_LABELS[category]}</p>
@@ -144,11 +169,31 @@ export default function PlatePlannerSection({
 
       <div className="plate-profile-card">
         <SectionHeading
-          eyebrow="Your details"
-          title="Check the details used to fix the plate."
+          eyebrow="Live rating"
+          title="Your plate score updates with every change."
+          body="Body details and meal goal also affect the live rating, so you can tune the plate in a more realistic way."
         />
 
-        <form className="plate-profile-form" onSubmit={onSubmit}>
+        <div className="results-summary plate-result-summary">
+          <div>
+            <span>Plate score</span>
+            <strong>{data ? data.score : "--"}</strong>
+          </div>
+          <div>
+            <span>Status</span>
+            <strong>{loading ? "Updating..." : "Live"}</strong>
+          </div>
+          <div>
+            <span>Vegetable focus</span>
+            <strong>{data ? data.target_split.vegetables : "--"}</strong>
+          </div>
+          <div>
+            <span>Protein focus</span>
+            <strong>{data ? data.target_split.protein : "--"}</strong>
+          </div>
+        </div>
+
+        <div className="plate-profile-form">
           <label className="form-field">
             <span>Age group</span>
             <select name="age_group" value={plateForm.profile.age_group} onChange={onProfileChange}>
@@ -202,74 +247,51 @@ export default function PlatePlannerSection({
               <option value="energy_support">energy support</option>
             </select>
           </label>
+        </div>
 
-          {error ? <p className="form-error">{error}</p> : null}
+        {error ? <p className="form-error">{error}</p> : null}
 
-          <div className="plate-planner-actions">
-            <button type="button" className="button button-secondary" onClick={() => onNavigate("survey")}>
-              Back to survey
-            </button>
-            <button type="submit" className="button button-primary" disabled={loading}>
-              {loading ? "Fixing plate..." : "Fix my plate"}
-            </button>
-          </div>
-        </form>
+        <div className="plate-planner-actions">
+          <button type="button" className="button button-secondary" onClick={() => onNavigate("survey")}>
+            Back to survey
+          </button>
+          <button type="button" className="button button-primary" onClick={onViewResults}>
+            View full analysis
+          </button>
+        </div>
       </div>
 
       <div className="plate-results-card">
         <SectionHeading
-          eyebrow="Adjusted plate"
-          title={data ? "Your corrected plate is ready." : "Your adjusted plate will appear here."}
+          eyebrow="Plate analysis"
+          title={data ? "Why your current plate scores this way." : "Your live plate analysis will appear here."}
           body={
             data
               ? data.summary
-              : "After you submit the meal, the app will suggest swaps and a better plate split."
+              : "Once the plate is ready, section-by-section explanations and overall tips will appear here."
           }
         />
 
         {data ? (
           <>
-            <div className="results-summary plate-result-summary">
-              <div>
-                <span>Plate score</span>
-                <strong>{data.score}</strong>
-              </div>
-              <div>
-                <span>Vegetables</span>
-                <strong>{data.target_split.vegetables}</strong>
-              </div>
-              <div>
-                <span>Protein</span>
-                <strong>{data.target_split.protein}</strong>
-              </div>
-              <div>
-                <span>Carbs</span>
-                <strong>{data.target_split.smart_carbs}</strong>
-              </div>
-            </div>
-
-            <div className="optimized-plate-grid">
-              {data.optimized_plate.map((item) => (
-                <article key={`${item.category}-${item.name}`} className="optimized-plate-item">
-                  <span>{item.category}</span>
-                  <strong>{item.name}</strong>
+            <div className="optimized-plate-grid plate-analysis-grid">
+              {data.adjustments.map((item) => (
+                <article key={`${item.category}-${item.updated}`} className="optimized-plate-item">
+                  <span>{item.category.replaceAll("_", " ")}</span>
+                  <strong>{item.updated}</strong>
+                  <p>{item.reason}</p>
                 </article>
               ))}
             </div>
 
             <div className="guidance-grid">
               <article className="guidance-card">
-                <h3>What changed</h3>
+                <h3>Target structure</h3>
                 <ul>
-                  {data.adjustments.length ? (
-                    data.adjustments.map((item) => (
-                      <li key={`${item.category}-${item.updated}`}>
-                        {item.original} to {item.updated}: {item.reason}
-                      </li>
-                    ))
-                  ) : (
-                    <li>The current plate already fits the selected goal well.</li>
-                  )}
+                  <li>{data.target_split.base}</li>
+                  <li>{data.target_split.protein}</li>
+                  <li>{data.target_split.vegetables}</li>
+                  <li>{data.target_split.drink}</li>
                 </ul>
               </article>
 

@@ -82,8 +82,10 @@ export default function ModelInsightsSection() {
               <li>Variety accuracy: {metrics.variety_accuracy}</li>
               <li>Plate base accuracy: {metrics.plate_accuracy.base}</li>
               <li>Plate protein accuracy: {metrics.plate_accuracy.protein}</li>
-              <li>Plate vegetable accuracy: {metrics.plate_accuracy.vegetable}</li>
-              <li>Plate side accuracy: {metrics.plate_accuracy.side}</li>
+              <li>Plate cooked veg accuracy: {metrics.plate_accuracy.cooked_veg}</li>
+              <li>Plate fresh side accuracy: {metrics.plate_accuracy.fresh_side}</li>
+              <li>Plate drink accuracy: {metrics.plate_accuracy.drink}</li>
+              <li>Plate add-on accuracy: {metrics.plate_accuracy.add_on}</li>
             </ul>
           ) : (
             <p>{loadError || "Loading model metrics..."}</p>
